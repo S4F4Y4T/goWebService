@@ -28,6 +28,6 @@ func (s *UserService) FindByID(req *model.GetUserRequest) (*model.User, error) {
 	return s.repo.FindByID(req)
 }
 
-func (s *UserService) FindAll() (*model.GetUsersResponse, error) {
-	return s.repo.FindAll(&model.GetUsersRequest{Limit: 10, Offset: 0})
+func (s *UserService) FindAll(req *model.GetUsersRequest) (*model.GetUsersResponse, error) {
+	return s.repo.FindAll(req)
 }

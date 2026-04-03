@@ -3,6 +3,7 @@ package handler
 import (
 	"net/http"
 
+	"github.com/S4F4Y4T/goWebService/internal/model"
 	"github.com/S4F4Y4T/goWebService/internal/service"
 	"github.com/S4F4Y4T/goWebService/pkg/response"
 )
@@ -16,7 +17,7 @@ func NewUserHandler(srv *service.UserService) *UserHandler {
 }
 
 func (h *UserHandler) GetUsers(w http.ResponseWriter, r *http.Request) {
-	users, err := h.srv.FindAll()
+	users, err := h.srv.FindAll(&model.GetUsersRequest{Limit: 10, Offset: 0})
 
 	if err != nil {
 		response.Error(w, err)
