@@ -6,6 +6,10 @@ import (
 	"time"
 
 	"github.com/S4F4Y4T/goWebService/config"
+	"github.com/S4F4Y4T/goWebService/internal/app"
+	"github.com/S4F4Y4T/goWebService/internal/handler"
+	"github.com/S4F4Y4T/goWebService/internal/repository"
+	"github.com/S4F4Y4T/goWebService/internal/service"
 	"github.com/S4F4Y4T/goWebService/router"
 )
 
@@ -15,7 +19,20 @@ func main() {
 		log.Fatal("Error loading config: ", err)
 	}
 
-	mux := router.SetupRoutes()
+	// ── Dependency Wiring ───────────────────────────────────────────────────
+	userRepo := repository.NewUserRepository()
+	userService := service.NewUserService(userRepo)
+	userHandler := handler.NewUserHandler(userService)
+
+	productRepo := repository.NewProductRepository()
+	productService := service.NewProductService(productRepo)
+	productHandler := handler.NewProductHandler(productService)
+
+	appInstance := &app.App{
+		UserHandler:    userHandler,
+		ProductHandler: productHandler,
+	}
+	mux := router.SetupRoutes(appInstance)
 
 	srv := &http.Server{
 		Addr:         ":" + cfg.PORT,
@@ -25,8 +42,8 @@ func main() {
 		IdleTimeout:  60 * time.Second,
 	}
 
+	log.Printf("Server starting on port %s", cfg.PORT)
 	if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 		log.Fatal("Error starting server: ", err)
 	}
-
 }

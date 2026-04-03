@@ -7,15 +7,13 @@ import (
 	"github.com/S4F4Y4T/goWebService/internal/middleware"
 )
 
-func RegisterUserRoutes(mux *http.ServeMux) {
+func RegisterUserRoutes(mux *http.ServeMux, h *handler.UserHandler) {
 	userMux := http.NewServeMux()
-	userMux.Handle("GET /", middleware.With(handler.GetUsers))
-	userMux.Handle("GET /{id}", middleware.With(handler.GetUser, middleware.Single))
-	userMux.Handle("POST /", middleware.With(handler.CreateUser))
-	userMux.Handle("PUT /{id}", middleware.With(handler.UpdateUser))
-	userMux.Handle("DELETE /{id}", middleware.With(handler.DeleteUser))
+	userMux.Handle("GET /", middleware.With(h.GetUsers))
+	userMux.Handle("GET /{id}", middleware.With(h.GetUser))
+	userMux.Handle("POST /", middleware.With(h.CreateUser))
+	userMux.Handle("PUT /{id}", middleware.With(h.UpdateUser))
+	userMux.Handle("DELETE /{id}", middleware.With(h.DeleteUser))
 
-	userMiddleware := middleware.Apply(middleware.User)
-
-	mux.Handle("/users/", http.StripPrefix("/users", userMiddleware(userMux)))
+	mux.Handle("/users/", http.StripPrefix("/users", userMux))
 }

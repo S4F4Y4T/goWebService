@@ -1,25 +1,43 @@
 package handler
 
-import "net/http"
+import (
+	"net/http"
 
-func RegisterRoutes() {}
+	"github.com/S4F4Y4T/goWebService/internal/service"
+	"github.com/S4F4Y4T/goWebService/pkg/response"
+)
 
-func GetUsers(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Get Users"))
+type UserHandler struct {
+	srv *service.UserService
 }
 
-func GetUser(w http.ResponseWriter, r *http.Request) {
+func NewUserHandler(srv *service.UserService) *UserHandler {
+	return &UserHandler{srv: srv}
+}
+
+func (h *UserHandler) GetUsers(w http.ResponseWriter, r *http.Request) {
+	users, err := h.srv.FindAll()
+
+	if err != nil {
+		response.Error(w, err)
+		return
+	}
+
+	response.OK(w, users)
+}
+
+func (h *UserHandler) GetUser(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Get User"))
 }
 
-func CreateUser(w http.ResponseWriter, r *http.Request) {
+func (h *UserHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Create User"))
 }
 
-func UpdateUser(w http.ResponseWriter, r *http.Request) {
+func (h *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Update User"))
 }
 
-func DeleteUser(w http.ResponseWriter, r *http.Request) {
+func (h *UserHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Delete User"))
 }

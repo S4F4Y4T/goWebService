@@ -42,6 +42,6 @@ func NotFound(w http.ResponseWriter, message string) {
 	JSON(w, http.StatusNotFound, Response{Success: false, Error: message})
 }
 
-func InternalError(w http.ResponseWriter) {
-	JSON(w, http.StatusInternalServerError, Response{Success: false, Error: "internal server error"})
+func Error(w http.ResponseWriter, err error) {
+	JSON(w, http.StatusInternalServerError, Response{Success: false, Error: err.Error()})
 }
