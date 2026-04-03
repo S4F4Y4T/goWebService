@@ -1,18 +1,23 @@
 BINARY_NAME=server
 BUILD_DIR=bin
 
-.PHONY: all build run run-bin clean
+.PHONY: all build run run-bin dev clean
 
 all: build
 
-# Run directly from cmd/server.go
+dev: run-air
+
+run-air:
+	air
+
+# Run directly from cmd/api/maing.go
 run:
-	go run cmd/server.go
+	go run cmd/api/main.go
 
 # Build the binary to bin/
 build:
 	@mkdir -p $(BUILD_DIR)
-	go build -o $(BUILD_DIR)/$(BINARY_NAME) cmd/server.go
+	go build -o $(BUILD_DIR)/$(BINARY_NAME) cmd/api/main.go
 
 # Run the built binary from bin/
 run-bin: build

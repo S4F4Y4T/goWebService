@@ -1,0 +1,15 @@
+# Binaries
+bin/
+
+# Go environment and temporary files
+*.exe
+*.test
+*.prof
+
+# OS specific files
+.DS_Store
+Thumbs.db
+
+tmp/
+
+.env
