@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/S4F4Y4T/goWebService/config"
-	"github.com/S4F4Y4T/goWebService/internal/router"
+	"github.com/S4F4Y4T/goWebService/router"
 )
 
 func main() {

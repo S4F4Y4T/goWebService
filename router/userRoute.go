@@ -9,11 +9,11 @@ import (
 
 func RegisterUserRoutes(mux *http.ServeMux) {
 	userMux := http.NewServeMux()
-	userMux.Handle("GET /", http.HandlerFunc(handler.GetUsers))
+	userMux.Handle("GET /", middleware.With(handler.GetUsers))
 	userMux.Handle("GET /{id}", middleware.With(handler.GetUser, middleware.Single))
-	userMux.Handle("POST /", http.HandlerFunc(handler.CreateUser))
-	userMux.Handle("PUT /{id}", http.HandlerFunc(handler.UpdateUser))
-	userMux.Handle("DELETE /{id}", http.HandlerFunc(handler.DeleteUser))
+	userMux.Handle("POST /", middleware.With(handler.CreateUser))
+	userMux.Handle("PUT /{id}", middleware.With(handler.UpdateUser))
+	userMux.Handle("DELETE /{id}", middleware.With(handler.DeleteUser))
 
 	userMiddleware := middleware.Apply(middleware.User)
 
