@@ -1,7 +1,9 @@
 package handler
 
 import (
+	"encoding/json"
 	"net/http"
+	"strconv"
 
 	"github.com/S4F4Y4T/goWebService/internal/model"
 	"github.com/S4F4Y4T/goWebService/internal/service"
@@ -28,17 +30,70 @@ func (h *UserHandler) GetUsers(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *UserHandler) GetUser(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Get User"))
+	idStr := r.PathValue("id")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		response.Error(w, err)
+		return
+	}
+
+	user, err := h.srv.FindByID(&model.GetUserRequest{ID: uint(id)})
+	if err != nil {
+		response.Error(w, err)
+		return
+	}
+
+	response.OK(w, user)
 }
 
 func (h *UserHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Create User"))
+	var req model.CreateUserRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		response.Error(w, err)
+		return
+	}
+	user, err := h.srv.Create(&req)
+	if err != nil {
+		response.Error(w, err)
+		return
+	}
+	response.OK(w, user)
 }
 
 func (h *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Update User"))
+	idStr := r.PathValue("id")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		response.Error(w, err)
+		return
+	}
+
+	var req model.UpdateUserRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		response.Error(w, err)
+		return
+	}
+	req.ID = uint(id)
+
+	user, err := h.srv.Update(&req)
+	if err != nil {
+		response.Error(w, err)
+		return
+	}
+	response.OK(w, user)
 }
 
 func (h *UserHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Delete User"))
+	idStr := r.PathValue("id")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		response.Error(w, err)
+		return
+	}
+
+	if err := h.srv.Delete(&model.DeleteUserRequest{ID: uint(id)}); err != nil {
+		response.Error(w, err)
+		return
+	}
+	response.Message(w, "Deleted User")
 }

@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"encoding/json"
 	"net/http"
 	"strconv"
 
@@ -18,7 +19,6 @@ func NewProductHandler(srv *service.ProductService) *ProductHandler {
 }
 
 func (h *ProductHandler) GetProducts(w http.ResponseWriter, r *http.Request) {
-
 	products, err := h.srv.FindAll()
 	if err != nil {
 		response.Error(w, err)
@@ -29,7 +29,6 @@ func (h *ProductHandler) GetProducts(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *ProductHandler) GetProduct(w http.ResponseWriter, r *http.Request) {
-
 	idStr := r.PathValue("id")
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
@@ -47,15 +46,53 @@ func (h *ProductHandler) GetProduct(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *ProductHandler) CreateProduct(w http.ResponseWriter, r *http.Request) {
-
-	response.Message(w, "Create Product")
+	var req model.CreateProductRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		response.Error(w, err)
+		return
+	}
+	product, err := h.srv.Create(&req)
+	if err != nil {
+		response.Error(w, err)
+		return
+	}
+	response.OK(w, product)
 }
 
 func (h *ProductHandler) UpdateProduct(w http.ResponseWriter, r *http.Request) {
+	idStr := r.PathValue("id")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		response.Error(w, err)
+		return
+	}
 
-	response.Message(w, "Update Product")
+	var req model.UpdateProductRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		response.Error(w, err)
+		return
+	}
+	req.ID = uint(id)
+
+	product, err := h.srv.Update(&req)
+	if err != nil {
+		response.Error(w, err)
+		return
+	}
+	response.OK(w, product)
 }
 
 func (h *ProductHandler) DeleteProduct(w http.ResponseWriter, r *http.Request) {
-	response.Message(w, "Delete Product")
+	idStr := r.PathValue("id")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		response.Error(w, err)
+		return
+	}
+
+	if err := h.srv.Delete(&model.DeleteProductRequest{ID: uint(id)}); err != nil {
+		response.Error(w, err)
+		return
+	}
+	response.Message(w, "Deleted Product")
 }
