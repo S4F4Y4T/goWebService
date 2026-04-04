@@ -2,7 +2,10 @@ package response
 
 import (
 	"encoding/json"
+	"errors"
+	"log/slog"
 	"net/http"
+	"strconv"
 )
 
 type Response struct {
@@ -43,5 +46,29 @@ func NotFound(w http.ResponseWriter, message string) {
 }
 
 func Error(w http.ResponseWriter, err error) {
-	JSON(w, http.StatusInternalServerError, Response{Success: false, Error: err.Error()})
+	if err == nil {
+		return
+	}
+
+	msg := err.Error()
+
+	// 404 Not Found mappings
+	if msg == "user not found" || msg == "product not found" || msg == "record not found" {
+		NotFound(w, msg)
+		return
+	}
+
+	// 400 Bad Request mappings (JSON parsing issues, invalid IDs)
+	var syntaxErr *json.SyntaxError
+	var unmarshalErr *json.UnmarshalTypeError
+	var numErr *strconv.NumError
+	
+	if errors.As(err, &syntaxErr) || errors.As(err, &unmarshalErr) || errors.As(err, &numErr) || msg == "EOF" || msg == "unexpected EOF" {
+		BadRequest(w, "invalid request data")
+		return
+	}
+
+	// 500 Internal Server Error (Mask raw DB queries and sensitive errors)
+	slog.Error("Internal Server Error", "error", err)
+	JSON(w, http.StatusInternalServerError, Response{Success: false, Error: "internal server error"})
 }

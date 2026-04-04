@@ -15,3 +15,9 @@
 - goorm
 - postgresql
 - pgadmin
+- panic recovery (exeption, recover in defer)
+- slog log (grafana loki, elk to after stream)
+- error handling (masking sensitive error, response utils)
+- db config - max open connection(queue after db conn limit), idle connection (warm up instead everytime open new conn), max lifetime (close after long time cz network hat it)
+- validation (playground)
+- grafana, loki for logging

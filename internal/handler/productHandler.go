@@ -51,6 +51,11 @@ func (h *ProductHandler) CreateProduct(w http.ResponseWriter, r *http.Request) {
 		response.Error(w, err)
 		return
 	}
+
+	if err := validate.Struct(req); err != nil {
+		response.BadRequest(w, "Validation failed: "+err.Error())
+		return
+	}
 	product, err := h.srv.Create(r.Context(), &req)
 	if err != nil {
 		response.Error(w, err)
@@ -73,6 +78,11 @@ func (h *ProductHandler) UpdateProduct(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	req.ID = uint(id)
+
+	if err := validate.Struct(req); err != nil {
+		response.BadRequest(w, "Validation failed: "+err.Error())
+		return
+	}
 
 	product, err := h.srv.Update(r.Context(), &req)
 	if err != nil {

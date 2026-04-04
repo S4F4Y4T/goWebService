@@ -13,12 +13,12 @@ type Product struct {
 }
 
 type CreateProductRequest struct {
-	Name string `json:"name"`
+	Name string `json:"name" validate:"required,min=2,max=255"`
 }
 
 type UpdateProductRequest struct {
 	ID   uint   `json:"id"`
-	Name string `json:"name"`
+	Name string `json:"name" validate:"required,min=2,max=255"`
 }
 
 type DeleteProductRequest struct {

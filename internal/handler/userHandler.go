@@ -8,7 +8,10 @@ import (
 	"github.com/S4F4Y4T/goWebService/internal/model"
 	"github.com/S4F4Y4T/goWebService/internal/service"
 	"github.com/S4F4Y4T/goWebService/pkg/response"
+	"github.com/go-playground/validator/v10"
 )
+
+var validate = validator.New()
 
 type UserHandler struct {
 	srv *service.UserService
@@ -52,6 +55,11 @@ func (h *UserHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 		response.Error(w, err)
 		return
 	}
+
+	if err := validate.Struct(req); err != nil {
+		response.BadRequest(w, "Validation failed: "+err.Error())
+		return
+	}
 	user, err := h.srv.Create(r.Context(), &req)
 	if err != nil {
 		response.Error(w, err)
@@ -74,6 +82,11 @@ func (h *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	req.ID = uint(id)
+
+	if err := validate.Struct(req); err != nil {
+		response.BadRequest(w, "Validation failed: "+err.Error())
+		return
+	}
 
 	user, err := h.srv.Update(r.Context(), &req)
 	if err != nil {
