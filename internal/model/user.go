@@ -1,9 +1,13 @@
 package model
 
+import "time"
+
 type User struct {
-	ID    int    `json:"id"`
-	Name  string `json:"name"`
-	Email string `json:"email"`
+	ID        uint      `json:"id" gorm:"primaryKey"`
+	Name      string    `json:"name"`
+	Email     string    `json:"email" gorm:"uniqueIndex"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
 }
 
 type CreateUserRequest struct {
@@ -12,16 +16,16 @@ type CreateUserRequest struct {
 }
 
 type UpdateUserRequest struct {
-	ID   int    `json:"id"`
+	ID   uint   `json:"id"`
 	Name string `json:"name"`
 }
 
 type DeleteUserRequest struct {
-	ID int `json:"id"`
+	ID uint `json:"id"`
 }
 
 type GetUserRequest struct {
-	ID int `json:"id"`
+	ID uint `json:"id"`
 }
 
 type GetUsersRequest struct {
@@ -31,7 +35,7 @@ type GetUsersRequest struct {
 
 type GetUsersResponse struct {
 	Users  []User `json:"users"`
-	Total  int    `json:"total"`
+	Total  int64  `json:"total"`
 	Limit  int    `json:"limit"`
 	Offset int    `json:"offset"`
 }

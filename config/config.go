@@ -10,6 +10,12 @@ import (
 type Config struct {
 	PORT string
 	ENV  string
+
+	DBHost     string
+	DBUser     string
+	DBPassword string
+	DBName     string
+	DBPort     string
 }
 
 func LoadConfig() (*Config, error) {
@@ -25,11 +31,23 @@ func LoadConfig() (*Config, error) {
 
 	env := os.Getenv("ENVIRONMENT")
 	if env == "" {
-		return nil, fmt.Errorf("error loading ENVIRONMENT from .env file")
+		env = "development"
 	}
 
 	return &Config{
-		PORT: port,
-		ENV:  env,
+		PORT:       port,
+		ENV:        env,
+		DBHost:     getEnv("DB_HOST", "localhost"),
+		DBUser:     getEnv("DB_USER", "postgres"),
+		DBPassword: getEnv("DB_PASSWORD", "postgres"),
+		DBName:     getEnv("DB_NAME", "go_web_service"),
+		DBPort:     getEnv("DB_PORT", "5432"),
 	}, nil
+}
+
+func getEnv(key, defaultVal string) string {
+	if value, exists := os.LookupEnv(key); exists {
+		return value
+	}
+	return defaultVal
 }

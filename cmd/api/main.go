@@ -11,6 +11,9 @@ import (
 	"github.com/S4F4Y4T/goWebService/internal/repository"
 	"github.com/S4F4Y4T/goWebService/internal/service"
 	"github.com/S4F4Y4T/goWebService/router"
+	"github.com/golang-migrate/migrate/v4"
+	_ "github.com/golang-migrate/migrate/v4/database/postgres"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
 )
 
 func main() {
@@ -19,8 +22,25 @@ func main() {
 		log.Fatal("Error loading config: ", err)
 	}
 
+	db, err := config.InitDB(cfg)
+	if err != nil {
+		log.Fatal("Error connecting to database: ", err)
+	}
+
+	// Run migrations
+	migrationURL := "file://db/migrations"
+	dbURL := config.GetDBURL(cfg)
+
+	m, err := migrate.New(migrationURL, dbURL)
+	if err != nil {
+		log.Fatal("Error initializing migrations: ", err)
+	}
+	if err := m.Up(); err != nil && err != migrate.ErrNoChange {
+		log.Fatal("Error migrating database: ", err)
+	}
+
 	// ── Dependency Wiring ───────────────────────────────────────────────────
-	userRepo := repository.NewUserRepository()
+	userRepo := repository.NewUserRepository(db)
 	userService := service.NewUserService(userRepo)
 	userHandler := handler.NewUserHandler(userService)
 

@@ -2,90 +2,101 @@ package repository
 
 import (
 	"errors"
-	"sync"
 
 	"github.com/S4F4Y4T/goWebService/internal/model"
+	"gorm.io/gorm"
 )
 
 type userRepository struct {
-	mu     sync.RWMutex
-	users  map[int]model.User
-	nextID int
+	db *gorm.DB
 }
 
-func NewUserRepository() model.UserRepository {
+func NewUserRepository(db *gorm.DB) model.UserRepository {
 	return &userRepository{
-		users:  make(map[int]model.User),
-		nextID: 1,
+		db: db,
 	}
 }
 
 func (r *userRepository) Create(req *model.CreateUserRequest) (*model.User, error) {
-	r.mu.Lock()
-	defer r.mu.Unlock()
-
 	user := model.User{
-		ID:    r.nextID,
 		Name:  req.Name,
 		Email: req.Email,
 	}
-	r.users[r.nextID] = user
-	r.nextID++
+
+	if err := r.db.Create(&user).Error; err != nil {
+		return nil, err
+	}
 
 	return &user, nil
 }
 
 func (r *userRepository) Update(req *model.UpdateUserRequest) (*model.User, error) {
-	r.mu.Lock()
-	defer r.mu.Unlock()
-
-	user, ok := r.users[req.ID]
-	if !ok {
-		return nil, errors.New("user not found")
+	var user model.User
+	if err := r.db.First(&user, req.ID).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, errors.New("user not found")
+		}
+		return nil, err
 	}
 
 	user.Name = req.Name
-	r.users[req.ID] = user
+	if err := r.db.Save(&user).Error; err != nil {
+		return nil, err
+	}
 
 	return &user, nil
 }
 
 func (r *userRepository) Delete(req *model.DeleteUserRequest) error {
-	r.mu.Lock()
-	defer r.mu.Unlock()
-
-	if _, ok := r.users[req.ID]; !ok {
-		return errors.New("user not found")
+	var user model.User
+	if err := r.db.First(&user, req.ID).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return errors.New("user not found")
+		}
+		return err
 	}
 
-	delete(r.users, req.ID)
+	if err := r.db.Delete(&user).Error; err != nil {
+		return err
+	}
 	return nil
 }
 
 func (r *userRepository) FindByID(req *model.GetUserRequest) (*model.User, error) {
-	r.mu.RLock()
-	defer r.mu.RUnlock()
-
-	user, ok := r.users[req.ID]
-	if !ok {
-		return nil, errors.New("user not found")
+	var user model.User
+	if err := r.db.First(&user, req.ID).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, errors.New("user not found")
+		}
+		return nil, err
 	}
 
 	return &user, nil
 }
 
 func (r *userRepository) FindAll(req *model.GetUsersRequest) (*model.GetUsersResponse, error) {
-	r.mu.RLock()
-	defer r.mu.RUnlock()
+	var users []model.User
+	var total int64
 
-	users := make([]model.User, 0, len(r.users))
-	for _, user := range r.users {
-		users = append(users, user)
+	query := r.db.Model(&model.User{})
+	if err := query.Count(&total).Error; err != nil {
+		return nil, err
+	}
+
+	if req.Limit > 0 {
+		query = query.Limit(req.Limit)
+	}
+	if req.Offset > 0 {
+		query = query.Offset(req.Offset)
+	}
+
+	if err := query.Find(&users).Error; err != nil {
+		return nil, err
 	}
 
 	return &model.GetUsersResponse{
 		Users:  users,
-		Total:  len(users),
+		Total:  total,
 		Limit:  req.Limit,
 		Offset: req.Offset,
 	}, nil
