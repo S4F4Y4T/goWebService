@@ -2,89 +2,100 @@ package repository
 
 import (
 	"errors"
-	"sync"
 
 	"github.com/S4F4Y4T/goWebService/internal/model"
+	"gorm.io/gorm"
 )
 
 type productRepository struct {
-	mu       sync.RWMutex
-	products map[int]model.Product
-	nextID   int
+	db *gorm.DB
 }
 
-func NewProductRepository() model.ProductRepository {
+func NewProductRepository(db *gorm.DB) model.ProductRepository {
 	return &productRepository{
-		products: make(map[int]model.Product),
-		nextID:   1,
+		db: db,
 	}
 }
 
 func (r *productRepository) Create(req *model.CreateProductRequest) (*model.Product, error) {
-	r.mu.Lock()
-	defer r.mu.Unlock()
-
 	product := model.Product{
-		ID:   r.nextID,
 		Name: req.Name,
 	}
-	r.products[r.nextID] = product
-	r.nextID++
+
+	if err := r.db.Create(&product).Error; err != nil {
+		return nil, err
+	}
 
 	return &product, nil
 }
 
 func (r *productRepository) Update(req *model.UpdateProductRequest) (*model.Product, error) {
-	r.mu.Lock()
-	defer r.mu.Unlock()
-
-	product, ok := r.products[req.ID]
-	if !ok {
-		return nil, errors.New("product not found")
+	var product model.Product
+	if err := r.db.First(&product, req.ID).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, errors.New("product not found")
+		}
+		return nil, err
 	}
 
 	product.Name = req.Name
-	r.products[req.ID] = product
+	if err := r.db.Save(&product).Error; err != nil {
+		return nil, err
+	}
 
 	return &product, nil
 }
 
 func (r *productRepository) Delete(req *model.DeleteProductRequest) error {
-	r.mu.Lock()
-	defer r.mu.Unlock()
-
-	if _, ok := r.products[req.ID]; !ok {
-		return errors.New("product not found")
+	var product model.Product
+	if err := r.db.First(&product, req.ID).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return errors.New("product not found")
+		}
+		return err
 	}
 
-	delete(r.products, req.ID)
+	if err := r.db.Delete(&product).Error; err != nil {
+		return err
+	}
 	return nil
 }
 
 func (r *productRepository) FindByID(req *model.GetProductRequest) (*model.Product, error) {
-	r.mu.RLock()
-	defer r.mu.RUnlock()
-
-	product, ok := r.products[req.ID]
-	if !ok {
-		return nil, errors.New("product not found")
+	var product model.Product
+	if err := r.db.First(&product, req.ID).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, errors.New("product not found")
+		}
+		return nil, err
 	}
 
 	return &product, nil
 }
 
 func (r *productRepository) FindAll(req *model.GetProductsRequest) (*model.GetProductsResponse, error) {
-	r.mu.RLock()
-	defer r.mu.RUnlock()
+	var products []model.Product
+	var total int64
 
-	products := make([]model.Product, 0, len(r.products))
-	for _, product := range r.products {
-		products = append(products, product)
+	query := r.db.Model(&model.Product{})
+	if err := query.Count(&total).Error; err != nil {
+		return nil, err
+	}
+
+	if req.Limit > 0 {
+		query = query.Limit(req.Limit)
+	}
+	if req.Offset > 0 {
+		query = query.Offset(req.Offset)
+	}
+
+	if err := query.Find(&products).Error; err != nil {
+		return nil, err
 	}
 
 	return &model.GetProductsResponse{
 		Products: products,
-		Total:    len(products),
+		Total:    total,
 		Limit:    req.Limit,
 		Offset:   req.Offset,
 	}, nil

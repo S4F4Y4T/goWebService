@@ -1,8 +1,12 @@
 package model
 
+import "time"
+
 type Product struct {
-	ID   int    `json:"id"`
-	Name string `json:"name"`
+	ID        uint      `json:"id" gorm:"primaryKey"`
+	Name      string    `json:"name"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
 }
 
 type CreateProductRequest struct {
@@ -10,16 +14,16 @@ type CreateProductRequest struct {
 }
 
 type UpdateProductRequest struct {
-	ID   int    `json:"id"`
+	ID   uint   `json:"id"`
 	Name string `json:"name"`
 }
 
 type DeleteProductRequest struct {
-	ID int `json:"id"`
+	ID uint `json:"id"`
 }
 
 type GetProductRequest struct {
-	ID int `json:"id"`
+	ID uint `json:"id"`
 }
 
 type GetProductsRequest struct {
@@ -29,7 +33,7 @@ type GetProductsRequest struct {
 
 type GetProductsResponse struct {
 	Products []Product `json:"products"`
-	Total    int       `json:"total"`
+	Total    int64     `json:"total"`
 	Limit    int       `json:"limit"`
 	Offset   int       `json:"offset"`
 }

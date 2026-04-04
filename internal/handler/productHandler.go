@@ -37,7 +37,7 @@ func (h *ProductHandler) GetProduct(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	product, err := h.srv.FindByID(&model.GetProductRequest{ID: id})
+	product, err := h.srv.FindByID(&model.GetProductRequest{ID: uint(id)})
 	if err != nil {
 		response.Error(w, err)
 		return
