@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"context"
 	"errors"
 
 	"github.com/S4F4Y4T/goWebService/internal/model"
@@ -17,22 +18,22 @@ func NewUserRepository(db *gorm.DB) model.UserRepository {
 	}
 }
 
-func (r *userRepository) Create(req *model.CreateUserRequest) (*model.User, error) {
+func (r *userRepository) Create(ctx context.Context, req *model.CreateUserRequest) (*model.User, error) {
 	user := model.User{
 		Name:  req.Name,
 		Email: req.Email,
 	}
 
-	if err := r.db.Create(&user).Error; err != nil {
+	if err := r.db.WithContext(ctx).Create(&user).Error; err != nil {
 		return nil, err
 	}
 
 	return &user, nil
 }
 
-func (r *userRepository) Update(req *model.UpdateUserRequest) (*model.User, error) {
+func (r *userRepository) Update(ctx context.Context, req *model.UpdateUserRequest) (*model.User, error) {
 	var user model.User
-	if err := r.db.First(&user, req.ID).Error; err != nil {
+	if err := r.db.WithContext(ctx).First(&user, req.ID).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, errors.New("user not found")
 		}
@@ -40,31 +41,31 @@ func (r *userRepository) Update(req *model.UpdateUserRequest) (*model.User, erro
 	}
 
 	user.Name = req.Name
-	if err := r.db.Save(&user).Error; err != nil {
+	if err := r.db.WithContext(ctx).Save(&user).Error; err != nil {
 		return nil, err
 	}
 
 	return &user, nil
 }
 
-func (r *userRepository) Delete(req *model.DeleteUserRequest) error {
+func (r *userRepository) Delete(ctx context.Context, req *model.DeleteUserRequest) error {
 	var user model.User
-	if err := r.db.First(&user, req.ID).Error; err != nil {
+	if err := r.db.WithContext(ctx).First(&user, req.ID).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return errors.New("user not found")
 		}
 		return err
 	}
 
-	if err := r.db.Delete(&user).Error; err != nil {
+	if err := r.db.WithContext(ctx).Delete(&user).Error; err != nil {
 		return err
 	}
 	return nil
 }
 
-func (r *userRepository) FindByID(req *model.GetUserRequest) (*model.User, error) {
+func (r *userRepository) FindByID(ctx context.Context, req *model.GetUserRequest) (*model.User, error) {
 	var user model.User
-	if err := r.db.First(&user, req.ID).Error; err != nil {
+	if err := r.db.WithContext(ctx).First(&user, req.ID).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, errors.New("user not found")
 		}
@@ -74,11 +75,11 @@ func (r *userRepository) FindByID(req *model.GetUserRequest) (*model.User, error
 	return &user, nil
 }
 
-func (r *userRepository) FindAll(req *model.GetUsersRequest) (*model.GetUsersResponse, error) {
+func (r *userRepository) FindAll(ctx context.Context, req *model.GetUsersRequest) (*model.GetUsersResponse, error) {
 	var users []model.User
 	var total int64
 
-	query := r.db.Model(&model.User{})
+	query := r.db.WithContext(ctx).Model(&model.User{})
 	if err := query.Count(&total).Error; err != nil {
 		return nil, err
 	}

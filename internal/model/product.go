@@ -1,6 +1,9 @@
 package model
 
-import "time"
+import (
+	"context"
+	"time"
+)
 
 type Product struct {
 	ID        uint      `json:"id" gorm:"primaryKey"`
@@ -39,9 +42,9 @@ type GetProductsResponse struct {
 }
 
 type ProductRepository interface {
-	Create(req *CreateProductRequest) (*Product, error)
-	Update(req *UpdateProductRequest) (*Product, error)
-	Delete(req *DeleteProductRequest) error
-	FindByID(req *GetProductRequest) (*Product, error)
-	FindAll(req *GetProductsRequest) (*GetProductsResponse, error)
+	Create(ctx context.Context, req *CreateProductRequest) (*Product, error)
+	Update(ctx context.Context, req *UpdateProductRequest) (*Product, error)
+	Delete(ctx context.Context, req *DeleteProductRequest) error
+	FindByID(ctx context.Context, req *GetProductRequest) (*Product, error)
+	FindAll(ctx context.Context, req *GetProductsRequest) (*GetProductsResponse, error)
 }

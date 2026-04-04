@@ -19,7 +19,7 @@ func NewProductHandler(srv *service.ProductService) *ProductHandler {
 }
 
 func (h *ProductHandler) GetProducts(w http.ResponseWriter, r *http.Request) {
-	products, err := h.srv.FindAll()
+	products, err := h.srv.FindAll(r.Context())
 	if err != nil {
 		response.Error(w, err)
 		return
@@ -36,7 +36,7 @@ func (h *ProductHandler) GetProduct(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	product, err := h.srv.FindByID(&model.GetProductRequest{ID: uint(id)})
+	product, err := h.srv.FindByID(r.Context(), &model.GetProductRequest{ID: uint(id)})
 	if err != nil {
 		response.Error(w, err)
 		return
@@ -51,7 +51,7 @@ func (h *ProductHandler) CreateProduct(w http.ResponseWriter, r *http.Request) {
 		response.Error(w, err)
 		return
 	}
-	product, err := h.srv.Create(&req)
+	product, err := h.srv.Create(r.Context(), &req)
 	if err != nil {
 		response.Error(w, err)
 		return
@@ -74,7 +74,7 @@ func (h *ProductHandler) UpdateProduct(w http.ResponseWriter, r *http.Request) {
 	}
 	req.ID = uint(id)
 
-	product, err := h.srv.Update(&req)
+	product, err := h.srv.Update(r.Context(), &req)
 	if err != nil {
 		response.Error(w, err)
 		return
@@ -90,7 +90,7 @@ func (h *ProductHandler) DeleteProduct(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.srv.Delete(&model.DeleteProductRequest{ID: uint(id)}); err != nil {
+	if err := h.srv.Delete(r.Context(), &model.DeleteProductRequest{ID: uint(id)}); err != nil {
 		response.Error(w, err)
 		return
 	}

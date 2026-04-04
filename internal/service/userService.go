@@ -1,6 +1,8 @@
 package service
 
 import (
+	"context"
+
 	"github.com/S4F4Y4T/goWebService/internal/model"
 )
 
@@ -12,22 +14,22 @@ func NewUserService(repo model.UserRepository) *UserService {
 	return &UserService{repo: repo}
 }
 
-func (s *UserService) Create(req *model.CreateUserRequest) (*model.User, error) {
-	return s.repo.Create(req)
+func (s *UserService) Create(ctx context.Context, req *model.CreateUserRequest) (*model.User, error) {
+	return s.repo.Create(ctx, req)
 }
 
-func (s *UserService) Update(req *model.UpdateUserRequest) (*model.User, error) {
-	return s.repo.Update(req)
+func (s *UserService) Update(ctx context.Context, req *model.UpdateUserRequest) (*model.User, error) {
+	return s.repo.Update(ctx, req)
 }
 
-func (s *UserService) Delete(req *model.DeleteUserRequest) error {
-	return s.repo.Delete(req)
+func (s *UserService) Delete(ctx context.Context, req *model.DeleteUserRequest) error {
+	return s.repo.Delete(ctx, req)
 }
 
-func (s *UserService) FindByID(req *model.GetUserRequest) (*model.User, error) {
-	return s.repo.FindByID(req)
+func (s *UserService) FindByID(ctx context.Context, req *model.GetUserRequest) (*model.User, error) {
+	return s.repo.FindByID(ctx, req)
 }
 
-func (s *UserService) FindAll(req *model.GetUsersRequest) (*model.GetUsersResponse, error) {
-	return s.repo.FindAll(req)
+func (s *UserService) FindAll(ctx context.Context, req *model.GetUsersRequest) (*model.GetUsersResponse, error) {
+	return s.repo.FindAll(ctx, req)
 }

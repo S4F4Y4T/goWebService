@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"context"
 	"errors"
 
 	"github.com/S4F4Y4T/goWebService/internal/model"
@@ -17,21 +18,21 @@ func NewProductRepository(db *gorm.DB) model.ProductRepository {
 	}
 }
 
-func (r *productRepository) Create(req *model.CreateProductRequest) (*model.Product, error) {
+func (r *productRepository) Create(ctx context.Context, req *model.CreateProductRequest) (*model.Product, error) {
 	product := model.Product{
 		Name: req.Name,
 	}
 
-	if err := r.db.Create(&product).Error; err != nil {
+	if err := r.db.WithContext(ctx).Create(&product).Error; err != nil {
 		return nil, err
 	}
 
 	return &product, nil
 }
 
-func (r *productRepository) Update(req *model.UpdateProductRequest) (*model.Product, error) {
+func (r *productRepository) Update(ctx context.Context, req *model.UpdateProductRequest) (*model.Product, error) {
 	var product model.Product
-	if err := r.db.First(&product, req.ID).Error; err != nil {
+	if err := r.db.WithContext(ctx).First(&product, req.ID).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, errors.New("product not found")
 		}
@@ -39,31 +40,31 @@ func (r *productRepository) Update(req *model.UpdateProductRequest) (*model.Prod
 	}
 
 	product.Name = req.Name
-	if err := r.db.Save(&product).Error; err != nil {
+	if err := r.db.WithContext(ctx).Save(&product).Error; err != nil {
 		return nil, err
 	}
 
 	return &product, nil
 }
 
-func (r *productRepository) Delete(req *model.DeleteProductRequest) error {
+func (r *productRepository) Delete(ctx context.Context, req *model.DeleteProductRequest) error {
 	var product model.Product
-	if err := r.db.First(&product, req.ID).Error; err != nil {
+	if err := r.db.WithContext(ctx).First(&product, req.ID).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return errors.New("product not found")
 		}
 		return err
 	}
 
-	if err := r.db.Delete(&product).Error; err != nil {
+	if err := r.db.WithContext(ctx).Delete(&product).Error; err != nil {
 		return err
 	}
 	return nil
 }
 
-func (r *productRepository) FindByID(req *model.GetProductRequest) (*model.Product, error) {
+func (r *productRepository) FindByID(ctx context.Context, req *model.GetProductRequest) (*model.Product, error) {
 	var product model.Product
-	if err := r.db.First(&product, req.ID).Error; err != nil {
+	if err := r.db.WithContext(ctx).First(&product, req.ID).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, errors.New("product not found")
 		}
@@ -73,11 +74,11 @@ func (r *productRepository) FindByID(req *model.GetProductRequest) (*model.Produ
 	return &product, nil
 }
 
-func (r *productRepository) FindAll(req *model.GetProductsRequest) (*model.GetProductsResponse, error) {
+func (r *productRepository) FindAll(ctx context.Context, req *model.GetProductsRequest) (*model.GetProductsResponse, error) {
 	var products []model.Product
 	var total int64
 
-	query := r.db.Model(&model.Product{})
+	query := r.db.WithContext(ctx).Model(&model.Product{})
 	if err := query.Count(&total).Error; err != nil {
 		return nil, err
 	}

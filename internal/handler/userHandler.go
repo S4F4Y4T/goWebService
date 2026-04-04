@@ -19,7 +19,7 @@ func NewUserHandler(srv *service.UserService) *UserHandler {
 }
 
 func (h *UserHandler) GetUsers(w http.ResponseWriter, r *http.Request) {
-	users, err := h.srv.FindAll(&model.GetUsersRequest{Limit: 10, Offset: 0})
+	users, err := h.srv.FindAll(r.Context(), &model.GetUsersRequest{Limit: 10, Offset: 0})
 
 	if err != nil {
 		response.Error(w, err)
@@ -37,7 +37,7 @@ func (h *UserHandler) GetUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := h.srv.FindByID(&model.GetUserRequest{ID: uint(id)})
+	user, err := h.srv.FindByID(r.Context(), &model.GetUserRequest{ID: uint(id)})
 	if err != nil {
 		response.Error(w, err)
 		return
@@ -52,7 +52,7 @@ func (h *UserHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 		response.Error(w, err)
 		return
 	}
-	user, err := h.srv.Create(&req)
+	user, err := h.srv.Create(r.Context(), &req)
 	if err != nil {
 		response.Error(w, err)
 		return
@@ -75,7 +75,7 @@ func (h *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	}
 	req.ID = uint(id)
 
-	user, err := h.srv.Update(&req)
+	user, err := h.srv.Update(r.Context(), &req)
 	if err != nil {
 		response.Error(w, err)
 		return
@@ -91,7 +91,7 @@ func (h *UserHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.srv.Delete(&model.DeleteUserRequest{ID: uint(id)}); err != nil {
+	if err := h.srv.Delete(r.Context(), &model.DeleteUserRequest{ID: uint(id)}); err != nil {
 		response.Error(w, err)
 		return
 	}

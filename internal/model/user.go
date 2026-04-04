@@ -1,6 +1,9 @@
 package model
 
-import "time"
+import (
+	"context"
+	"time"
+)
 
 type User struct {
 	ID        uint      `json:"id" gorm:"primaryKey"`
@@ -41,9 +44,9 @@ type GetUsersResponse struct {
 }
 
 type UserRepository interface {
-	Create(req *CreateUserRequest) (*User, error)
-	Update(req *UpdateUserRequest) (*User, error)
-	Delete(req *DeleteUserRequest) error
-	FindByID(req *GetUserRequest) (*User, error)
-	FindAll(req *GetUsersRequest) (*GetUsersResponse, error)
+	Create(ctx context.Context, req *CreateUserRequest) (*User, error)
+	Update(ctx context.Context, req *UpdateUserRequest) (*User, error)
+	Delete(ctx context.Context, req *DeleteUserRequest) error
+	FindByID(ctx context.Context, req *GetUserRequest) (*User, error)
+	FindAll(ctx context.Context, req *GetUsersRequest) (*GetUsersResponse, error)
 }
