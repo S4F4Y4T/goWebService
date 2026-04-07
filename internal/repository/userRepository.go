@@ -41,10 +41,22 @@ func (r *userRepository) Update(ctx context.Context, req *model.UpdateUserReques
 	}
 
 	user.Name = req.Name
+	user.Email = req.Email
 	if err := r.db.WithContext(ctx).Save(&user).Error; err != nil {
 		return nil, err
 	}
 
+	return &user, nil
+}
+
+func (r *userRepository) FindByEmail(ctx context.Context, email string) (*model.User, error) {
+	var user model.User
+	if err := r.db.WithContext(ctx).Where("email = ?", email).First(&user).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil // Return nil, nil if not found
+		}
+		return nil, err
+	}
 	return &user, nil
 }
 

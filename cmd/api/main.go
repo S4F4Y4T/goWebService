@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"io"
 	"log/slog"
 	"net/http"
 	"os"
@@ -21,7 +22,13 @@ import (
 )
 
 func main() {
-	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
+	os.MkdirAll("tmp", os.ModePerm)
+	logFile, err := os.OpenFile("tmp/app.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+	if err != nil {
+		panic("impossible application state: failed to create log file")
+	}
+
+	logger := slog.New(slog.NewJSONHandler(io.MultiWriter(os.Stdout, logFile), nil))
 	slog.SetDefault(logger)
 
 	cfg, err := config.LoadConfig()

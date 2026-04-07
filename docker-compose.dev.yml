@@ -20,5 +20,27 @@ services:
     depends_on:
       - postgres
 
+  loki:
+    image: grafana/loki:latest
+    ports:
+      - "3100:3100"
+
+  promtail:
+    image: grafana/promtail:latest
+    volumes:
+      - ./tmp/app.log:/var/log/app/app.log:ro
+      - ./config/promtail-local-config.yml:/etc/promtail/config.yml:ro
+    command: -config.file=/etc/promtail/config.yml
+    depends_on:
+      - loki
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3003:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+
 volumes:
   postgres_data:

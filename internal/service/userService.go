@@ -33,3 +33,7 @@ func (s *UserService) FindByID(ctx context.Context, req *model.GetUserRequest) (
 func (s *UserService) FindAll(ctx context.Context, req *model.GetUsersRequest) (*model.GetUsersResponse, error) {
 	return s.repo.FindAll(ctx, req)
 }
+
+func (s *UserService) FindByEmail(ctx context.Context, email string) (*model.User, error) {
+	return s.repo.FindByEmail(ctx, email)
+}

@@ -62,7 +62,7 @@ func Error(w http.ResponseWriter, err error) {
 	var syntaxErr *json.SyntaxError
 	var unmarshalErr *json.UnmarshalTypeError
 	var numErr *strconv.NumError
-	
+
 	if errors.As(err, &syntaxErr) || errors.As(err, &unmarshalErr) || errors.As(err, &numErr) || msg == "EOF" || msg == "unexpected EOF" {
 		BadRequest(w, "invalid request data")
 		return

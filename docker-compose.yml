@@ -1,4 +1,4 @@
-version: "3.8"
+
 
 services:
   app:
@@ -36,6 +36,30 @@ services:
       - "5050:80"
     depends_on:
       - postgres
+
+  loki:
+    image: grafana/loki:latest
+    ports:
+      - "3100:3100"
+
+  promtail:
+    image: grafana/promtail:latest
+    user: root
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - ./config/promtail-prod-config.yml:/etc/promtail/config.yml:ro
+    command: -config.file=/etc/promtail/config.yml
+    depends_on:
+      - loki
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3003:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
 
 volumes:
   postgres_data:

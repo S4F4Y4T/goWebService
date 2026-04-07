@@ -15,12 +15,13 @@ type User struct {
 
 type CreateUserRequest struct {
 	Name  string `json:"name" validate:"required,min=2,max=100"`
-	Email string `json:"email" validate:"required,email"`
+	Email string `json:"email" validate:"required,email,unique_email"`
 }
 
 type UpdateUserRequest struct {
-	ID   uint   `json:"id"`
-	Name string `json:"name" validate:"required,min=2,max=100"`
+	ID    uint   `json:"id"`
+	Name  string `json:"name" validate:"required,min=2,max=100"`
+	Email string `json:"email" validate:"required,email"`
 }
 
 type DeleteUserRequest struct {
@@ -49,4 +50,5 @@ type UserRepository interface {
 	Delete(ctx context.Context, req *DeleteUserRequest) error
 	FindByID(ctx context.Context, req *GetUserRequest) (*User, error)
 	FindAll(ctx context.Context, req *GetUsersRequest) (*GetUsersResponse, error)
+	FindByEmail(ctx context.Context, email string) (*User, error)
 }
