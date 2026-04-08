@@ -97,6 +97,9 @@ services:
   loki:
     image: grafana/loki:latest
     restart: always
+    volumes:
+      - ./config/loki-config.yml:/etc/loki/local-config.yaml:ro
+    command: -config.file=/etc/loki/local-config.yaml
     deploy:
       resources:
         limits:
@@ -123,6 +126,8 @@ services:
   grafana:
     image: grafana/grafana:latest
     restart: always
+    volumes:
+      - ./config/grafana-datasource.yml:/etc/grafana/provisioning/datasources/datasource.yml:ro
     environment:
       - GF_SECURITY_ADMIN_USER=${GRAFANA_USER:-admin}
       - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
@@ -131,6 +136,8 @@ services:
         limits:
           cpus: '0.1'
           memory: 256M
+    depends_on:
+      - loki
 
 volumes:
   postgres_prod_data:

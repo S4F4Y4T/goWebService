@@ -20,15 +20,27 @@ services:
     depends_on:
       - postgres
 
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    restart: always
+
   loki:
     image: grafana/loki:latest
     ports:
       - "3100:3100"
+    volumes:
+      - ./config/loki-config.yml:/etc/loki/local-config.yaml:ro
+    command: -config.file=/etc/loki/local-config.yaml
 
   promtail:
     image: grafana/promtail:latest
+    user: root
     volumes:
       - ./tmp/app.log:/var/log/app/app.log:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
       - ./config/promtail-local-config.yml:/etc/promtail/config.yml:ro
     command: -config.file=/etc/promtail/config.yml
     depends_on:
@@ -38,9 +50,13 @@ services:
     image: grafana/grafana:latest
     ports:
       - "3003:3000"
+    volumes:
+      - ./config/grafana-datasource.yml:/etc/grafana/provisioning/datasources/datasource.yml:ro
     environment:
       - GF_SECURITY_ADMIN_USER=admin
       - GF_SECURITY_ADMIN_PASSWORD=admin
+    depends_on:
+      - loki
 
 volumes:
   postgres_data:
