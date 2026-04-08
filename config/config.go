@@ -24,6 +24,8 @@ type Config struct {
 	RedisPort     string
 	RedisPassword string
 	RedisDB       int
+
+	SlowQueryThreshold int // in milliseconds
 }
 
 func LoadConfig() (*Config, error) {
@@ -58,6 +60,8 @@ func LoadConfig() (*Config, error) {
 		RedisPort:     getEnv("REDIS_PORT", "6379"),
 		RedisPassword: getEnv("REDIS_PASSWORD", ""),
 		RedisDB:       getEnvInt("REDIS_DB", 0),
+
+		SlowQueryThreshold: getEnvInt("SLOW_QUERY_THRESHOLD", 200),
 	}, nil
 }
 

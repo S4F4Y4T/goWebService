@@ -17,7 +17,12 @@ func GetDBURL(cfg *Config) string {
 func InitDB(cfg *Config) (*gorm.DB, error) {
 	dsn := GetDBURL(cfg)
 
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	// Use custom slog-based logger
+	dbLogger := NewDBLogger(time.Duration(cfg.SlowQueryThreshold) * time.Millisecond)
+
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
+		Logger: dbLogger,
+	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to database: %w", err)
 	}
