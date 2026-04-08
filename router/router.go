@@ -16,5 +16,5 @@ func SetupRoutes(app *app.App) http.Handler {
 	RegisterUserRoutes(mux, app.UserHandler)
 	RegisterProductRoutes(mux, app.ProductHandler)
 
-	return middleware.Apply(middleware.Recover, middleware.Logger, middleware.Cors)(mux)
+	return middleware.Apply(middleware.Recover, middleware.CorrelationID, middleware.Logger, middleware.Cors)(mux)
 }

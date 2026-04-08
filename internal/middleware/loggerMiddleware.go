@@ -9,6 +9,7 @@ import (
 func Logger(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
+		correlationID := GetCorrelationID(r.Context())
 		
 		// Wait for next handlers to finish
 		next.ServeHTTP(w, r)
@@ -16,6 +17,7 @@ func Logger(next http.Handler) http.Handler {
 		slog.Info("HTTP Request", 
 			"method", r.Method, 
 			"path", r.URL.Path, 
+			"correlation_id", correlationID,
 			"duration_ms", time.Since(start).Milliseconds(),
 		)
 	})
