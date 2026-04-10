@@ -19,159 +19,84 @@
   "links": [],
   "panels": [
     {
-      "datasource": "Prometheus",
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "axisLabel": "",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "drawStyle": "line",
-            "fillOpacity": 10,
-            "gradientMode": "none",
-            "hideFrom": {
-              "legend": false,
-              "panel": false,
-              "tooltip": false
-            },
-            "lineInterpolation": "linear",
-            "lineWidth": 1,
-            "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "auto",
-            "spanNulls": false,
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          },
-          "unit": "decbytes"
-        },
-        "overrides": []
-      },
+      "collapsed": false,
       "gridPos": {
-        "h": 8,
-        "w": 12,
+        "h": 1,
+        "w": 24,
         "x": 0,
         "y": 0
       },
-      "id": 2,
-      "options": {
-        "legend": {
-          "calcs": [],
-          "displayMode": "list",
-          "placement": "bottom"
-        },
-        "tooltip": {
-          "mode": "single",
-          "sort": "none"
+      "id": 100,
+      "panels": [],
+      "title": "Memory Overview",
+      "type": "row"
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "palette-classic"},
+          "custom": {"fillOpacity": 10, "lineWidth": 1},
+          "unit": "decbytes"
         }
       },
-      "targets": [
-        {
-          "datasource": "Prometheus",
-          "expr": "go_memory_used_bytes{exported_job=\"go-web-service\"}",
-          "interval": "",
-          "legendFormat": "{{go_memory_type}}",
-          "refId": "A"
-        }
-      ],
-      "title": "Memory Usage (OTel)",
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 1},
+      "id": 2,
+      "targets": [{
+        "expr": "go_memory_used_bytes{exported_job=\"go-web-service\"}",
+        "legendFormat": "Used: {{go_memory_type}}",
+        "refId": "A"
+      }],
+      "title": "Memory Usage Breakdown",
       "type": "timeseries"
     },
     {
       "datasource": "Prometheus",
       "fieldConfig": {
         "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "axisLabel": "",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "drawStyle": "line",
-            "fillOpacity": 10,
-            "gradientMode": "none",
-            "hideFrom": {
-              "legend": false,
-              "panel": false,
-              "tooltip": false
-            },
-            "lineInterpolation": "linear",
-            "lineWidth": 1,
-            "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "auto",
-            "spanNulls": false,
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          }
-        },
-        "overrides": []
+          "color": {"mode": "palette-classic"},
+          "custom": {"fillOpacity": 10, "lineWidth": 1},
+          "unit": "decbytes"
+        }
       },
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 1},
+      "id": 3,
+      "targets": [{
+        "expr": "sum(go_memory_used_bytes{exported_job=\"go-web-service\"})",
+        "legendFormat": "Total Use",
+        "refId": "A"
+      }],
+      "title": "Total Used Memory",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
       "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 12,
-        "y": 0
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 9
       },
+      "id": 101,
+      "panels": [],
+      "title": "Runtime & Concurrency",
+      "type": "row"
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "palette-classic"},
+          "custom": {"fillOpacity": 10, "lineWidth": 1}
+        }
+      },
+      "gridPos": {"h": 8, "w": 8, "x": 0, "y": 10},
       "id": 4,
-      "options": {
-        "legend": {
-          "calcs": [],
-          "displayMode": "list",
-          "placement": "bottom"
-        },
-        "tooltip": {
-          "mode": "single",
-          "sort": "none"
-        }
-      },
-      "targets": [
-        {
-          "datasource": "Prometheus",
-          "expr": "go_goroutine_count{exported_job=\"go-web-service\"}",
-          "interval": "",
-          "legendFormat": "Goroutines",
-          "refId": "A"
-        }
-      ],
+      "targets": [{
+        "expr": "go_goroutine_count{exported_job=\"go-web-service\"}",
+        "legendFormat": "Goroutines",
+        "refId": "A"
+      }],
       "title": "Active Goroutines",
       "type": "timeseries"
     },
@@ -179,174 +104,129 @@
       "datasource": "Prometheus",
       "fieldConfig": {
         "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "axisLabel": "",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "drawStyle": "line",
-            "fillOpacity": 10,
-            "gradientMode": "none",
-            "hideFrom": {
-              "legend": false,
-              "panel": false,
-              "tooltip": false
-            },
-            "lineInterpolation": "linear",
-            "lineWidth": 1,
-            "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "auto",
-            "spanNulls": false,
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          },
-          "unit": "s"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 0,
-        "y": 8
-      },
-      "id": 6,
-      "options": {
-        "legend": {
-          "calcs": [],
-          "displayMode": "list",
-          "placement": "bottom"
-        },
-        "tooltip": {
-          "mode": "single",
-          "sort": "none"
+          "color": {"mode": "palette-classic"},
+          "custom": {"fillOpacity": 10, "lineWidth": 1}
         }
       },
-      "targets": [
-        {
-          "datasource": "Prometheus",
-          "expr": "rate(go_gc_duration_seconds_sum{exported_job=\"go-web-service\"}[1m])",
-          "interval": "",
-          "legendFormat": "GC Duration Rate",
-          "refId": "A"
-        }
-      ],
-      "title": "GC Duration (Rate)",
+      "gridPos": {"h": 8, "w": 8, "x": 8, "y": 10},
+      "id": 5,
+      "targets": [{
+        "expr": "go_threads{exported_job=\"go-web-service\"}",
+        "legendFormat": "Threads",
+        "refId": "A"
+      }],
+      "title": "OS Threads",
       "type": "timeseries"
     },
     {
       "datasource": "Prometheus",
       "fieldConfig": {
         "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "axisLabel": "",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "drawStyle": "line",
-            "fillOpacity": 10,
-            "gradientMode": "none",
-            "hideFrom": {
-              "legend": false,
-              "panel": false,
-              "tooltip": false
-            },
-            "lineInterpolation": "linear",
-            "lineWidth": 1,
-            "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "auto",
-            "spanNulls": false,
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          }
-        },
-        "overrides": []
+          "color": {"mode": "palette-classic"},
+          "custom": {"fillOpacity": 10, "lineWidth": 1},
+          "unit": "s"
+        }
       },
+      "gridPos": {"h": 8, "w": 8, "x": 16, "y": 10},
+      "id": 6,
+      "targets": [{
+        "expr": "rate(go_gc_duration_seconds_sum{exported_job=\"go-web-service\"}[1m])",
+        "legendFormat": "GC Pause Rate",
+        "refId": "A"
+      }],
+      "title": "GC Duration (s/s)",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
       "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 12,
-        "y": 8
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 18
       },
+      "id": 102,
+      "panels": [],
+      "title": "Objects & Allocations",
+      "type": "row"
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "palette-classic"},
+          "custom": {"fillOpacity": 10, "lineWidth": 1}
+        }
+      },
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 19},
+      "id": 7,
+      "targets": [{
+        "expr": "go_memory_allocations_total{exported_job=\"go-web-service\"} - go_memory_frees_total{exported_job=\"go-web-service\"}",
+        "legendFormat": "Live Objects",
+        "refId": "A"
+      }],
+      "title": "Number of Live Objects",
+      "type": "timeseries"
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "palette-classic"},
+          "custom": {"fillOpacity": 10, "lineWidth": 1}
+        }
+      },
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 19},
       "id": 8,
-      "options": {
-        "legend": {
-          "calcs": [],
-          "displayMode": "list",
-          "placement": "bottom"
-        },
-        "tooltip": {
-          "mode": "single",
-          "sort": "none"
+      "targets": [{
+        "expr": "rate(go_memory_allocations_total{exported_job=\"go-web-service\"}[1m])",
+        "legendFormat": "Alloc Rate",
+        "refId": "A"
+      }],
+      "title": "Object Allocation Rate",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 27
+      },
+      "id": 103,
+      "panels": [],
+      "title": "Database (SQL)",
+      "type": "row"
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "palette-classic"},
+          "custom": {"fillOpacity": 10, "lineWidth": 1}
         }
       },
+      "gridPos": {"h": 8, "w": 24, "x": 0, "y": 28},
+      "id": 9,
       "targets": [
-        {
-          "datasource": "Prometheus",
-          "expr": "go_threads{exported_job=\"go-web-service\"}",
-          "interval": "",
-          "legendFormat": "Threads",
-          "refId": "A"
-        }
+        {"expr": "go_sql_connections_open{exported_job=\"go-web-service\"}", "legendFormat": "Open", "refId": "A"},
+        {"expr": "go_sql_connections_idle{exported_job=\"go-web-service\"}", "legendFormat": "Idle", "refId": "B"},
+        {"expr": "go_sql_connections_in_use{exported_job=\"go-web-service\"}", "legendFormat": "In Use", "refId": "C"}
       ],
-      "title": "OS Threads",
+      "title": "SQL Connections",
       "type": "timeseries"
     }
   ],
   "refresh": "5s",
   "schemaVersion": 36,
   "style": "dark",
-  "tags": [],
-  "templating": {
-    "list": []
-  },
-  "time": {
-    "from": "now-30m",
-    "to": "now"
-  },
+  "tags": ["go", "otel", "metrics"],
+  "templating": {"list": []},
+  "time": {"from": "now-15m", "to": "now"},
   "timepicker": {},
   "timezone": "",
-  "title": "Go Web Service - OTel Metrics",
-  "uid": "go_otel_metrics",
-  "version": 1
+  "title": "Go Web Service - Complete Metrics",
+  "uid": "go_complete_metrics",
+  "version": 2
 }
