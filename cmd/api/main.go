@@ -24,13 +24,23 @@ import (
 
 func main() {
 	// Initialize Telemetry
-	shutdown, err := telemetry.InitTracer()
+	shutdownTracer, err := telemetry.InitTracer()
 	if err != nil {
-		slog.Error("Failed to initialize telemetry", "error", err)
+		slog.Error("Failed to initialize tracer", "error", err)
 	}
 	defer func() {
-		if shutdown != nil {
-			shutdown(context.Background())
+		if shutdownTracer != nil {
+			shutdownTracer(context.Background())
+		}
+	}()
+
+	shutdownMetrics, err := telemetry.InitMetrics()
+	if err != nil {
+		slog.Error("Failed to initialize metrics", "error", err)
+	}
+	defer func() {
+		if shutdownMetrics != nil {
+			shutdownMetrics(context.Background())
 		}
 	}()
 

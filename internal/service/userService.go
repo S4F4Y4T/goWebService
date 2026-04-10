@@ -7,7 +7,6 @@ import (
 	"github.com/S4F4Y4T/goWebService/internal/model"
 	"github.com/S4F4Y4T/goWebService/pkg/apperror"
 	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/trace"
 	"gorm.io/gorm"
 )
 
