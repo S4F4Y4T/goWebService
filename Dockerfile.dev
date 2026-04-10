@@ -1,0 +1,18 @@
+FROM golang:alpine
+
+WORKDIR /app
+
+# Install air for live reloading
+RUN go install github.com/air-verse/air@latest
+
+# Copy go mod and sum files
+COPY go.mod go.sum ./
+
+# Download all dependencies
+RUN go mod download
+
+# Copy the source code
+COPY . .
+
+# Run air
+CMD ["air", "-c", ".air.toml"]

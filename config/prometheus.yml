@@ -26,7 +26,7 @@ scrape_configs:
       module: [http_2xx]
     static_configs:
       - targets:
-        - http://host.docker.internal:6969/health
+        - http://app:6969/health
     relabel_configs:
       - source_labels: [__address__]
         target_label: __param_target

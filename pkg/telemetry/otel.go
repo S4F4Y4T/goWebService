@@ -28,7 +28,7 @@ func newResource(ctx context.Context) (*resource.Resource, error) {
 func getOTELHttpEndpoint() string {
 	otelEndpoint := os.Getenv("OTEL_EXPORTER_OTLP_ENDPOINT")
 	if otelEndpoint == "" {
-		otelEndpoint = "otel-collector:4318" 
+		otelEndpoint = "otel-collector:4318"
 	}
 	return otelEndpoint
 }

@@ -1,4 +1,27 @@
 services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    volumes:
+      - .:/app
+    ports:
+      - "6969:6969"
+    environment:
+      - PORT=6969
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=${DB_USER:-postgres}
+      - DB_PASSWORD=${DB_PASSWORD:-postgres}
+      - DB_NAME=${DB_NAME:-go_web_service}
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - OTEL_EXPORTER_OTLP_ENDPOINT=otel-collector:4318
+      - ENVIRONMENT=development
+    depends_on:
+      - postgres
+      - redis
+      - otel-collector
   postgres:
     image: postgres:15-alpine
     environment:
