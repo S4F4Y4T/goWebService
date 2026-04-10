@@ -1,70 +1,78 @@
-# Comprehensive Observability Stack Documentation
+# Comprehensive Observability Master Guide (Enterprise V3.2)
 
-## 1. Overview
-This document serves as the master guide for the production-grade observability stack built for the Go Web Service. It ensures visibility into system health, performance bottlenecking, and error tracking through Logs, Traces, Metrics, and Alerting.
+## 1. System Philosophy
+This stack ensures **Full-Stack Visibility** (from Host Hardware to Application Trace). We prioritize **DORA metrics** (Availability, Latency, Error Rate) through an integrated LGTM stack (Loki, Grafana, Tempo, Mimir/Prometheus).
 
 ---
 
-## 2. Architecture & Detailed Components
+## 2. Deep Dive: Architecture & Components
 
-### 2.1 Logs (Loki / Promtail)
-- **Promtail**: The log fetcher. It talks to the **Docker Socket** to automatically discover all containers. It tags logs with `service` and `container` names for easy filtering.
-- **Loki**: The storage engine. Unlike other log systems, it only indexes labels, making it extremely fast and lightweight.
-- **Derived Fields**: Configured in Grafana to detect `"trace_id"` in JSON logs and provide a deep-link to the exact request trace in Tempo.
+### 2.1 Logs: High-Performance Ingestion
+- **Tool**: **Loki** + **Promtail**.
+- **Ingestion**: Promtail watches the `/var/run/docker.sock` to auto-discover containers.
+- **Labeling**: Logs are labeled by `service` and `container`. Use `{service="app"}` to filter.
+- **Linking**: A Regex-based **Derived Field** in Grafana links JSON `trace_id` fields directly to Tempo traces for 1-click debugging.
 
-### 2.2 Traces (OpenTelemetry & Tempo)
-- **OTel SDK**: Instrumented in `pkg/telemetry/otel.go`. It decorates all HTTP routes and GORM queries with spans.
-- **OTel Collector**: The middleman at port `4318`. It receives OTLP data and routes it to Tempo (traces) and Prometheus (metrics). 
-- **Tempo**: A massive-scale trace storage. It allows you to see "waterfall" charts showing exactly which SQL query or API call caused a slowdown.
+### 2.2 Traces: Distributed Context Propagation
+- **Tool**: **Tempo** + **OpenTelemetry (OTel)**.
+- **SDK**: Instrumented in `pkg/telemetry/otel.go` for HTTP (mux) and DB (GORM) spans.
+- **Propagation**: W3C TraceContext headers. Use `telemetry.NewHTTPClient()` for all outgoing service calls.
+- **Sampling**: **20% (0.2 ratio)** to balance detail vs. storage cost.
 
-### 2.3 Metrics (Prometheus Ecosystem)
-- **Prometheus**: The core time-series engine. It scrapes the OTel Collector, Node Exporter, and Blackbox Exporter.
-- **Node Exporter**: Accesses host-level metrics (CPU, Memory, Disk) to monitor the local OS environment.
-- **Blackbox Exporter**: Continuously probes `http://app:6969/health` to ensure the service is actually responsive to end-users.
+### 2.3 Metrics: Multi-Layered Monitoring
+- **Infrastructure**: **Node Exporter** (Host CPU Load, Memory usage, Disk space, and Network utilization).
+- **Application**: Go Runtime metrics (GC, Goroutines, Heap) via OTel Collector.
+- **Uptime Probing**: **Blackbox Exporter** simulates a real user at `http://app:6969/health` to verify response status and latency.
 
 ### 2.4 Security & Gateway (NGINX)
-- **NGINX Gateway**: Acts as the single entry point at port **8080**. It uses a reverse proxy to route traffic and protects sensitive internal tools (Prometheus/Alertmanager) with **Basic Auth**.
+- **Gateway**: Operates at Port **8080**.
+- **Auth**: Prometheus and Alertmanager are protected by **Basic Auth** (`admin` / `admin123`).
+- **Grafana**: Accessible at `/grafana/` (Admin/Admin).
 
 ---
 
-## 3. Service Ports & Gateway Mapping
+## 3. Service Inventory & Direct Links
 
-| Service | Internal Port | Access via Gateway | Description |
+| Service | Internal Port | Gateway Access | Description |
 | :--- | :--- | :--- | :--- |
-| **Go App** | `6969` | `http://localhost:8080/` | Main application endpoint. |
-| **Grafana** | `3000` | `localhost:8080/grafana/` | Visualization (Admin/Admin). |
-| **Prometheus**| `9090` | `localhost:8080/prometheus/` | Metrics / DB (Admin/admin123). |
-| **OTel Collector**| `4318` | N/A | Receives OTLP data from Go app. |
-| **Loki** | `3100` | N/A | Log storage API. |
-| **Tempo** | `3200` | N/A | Trace storage API. |
+| **Go App** | `6969` | `http://localhost:8080/` | Main API Service |
+| **Grafana** | `3000` | `localhost:8080/grafana/` | Visualization Portal |
+| **Prometheus**| `9090` | `localhost:8080/prometheus/` | Metrics Engine (Auth Required) |
+| **Alertmanager**| `9093` | N/A | Alarm Management Pipeline |
+| **OTel Collector**| `4318` | N/A | OTLP Ingestion (HTTP) |
+| **Loki** | `3100` | N/A | Aggregated Log Lake |
+| **Tempo** | `3200` | N/A | Distributed Trace Store |
 
 ---
 
-## 4. Maintenance & Management Guide
+## 4. Maintenance & Operations
 
-### 4.1 How to add a new Alert:
-1. Open `config/alert.rules.yml`.
-2. Add a rule (e.g., High Error Rate). 
-3. Run `docker compose restart prometheus`.
+### 4.1 Adding New Alerts
+- Edit `config/alert.rules.yml`. Add your logic under `infrastructure_alerts`.
+- Always include a `runbook_url` for incident guidance.
+- Reload: `docker compose restart prometheus`.
 
-### 4.2 How to change Log Retention:
-1. Open `config/loki-config.yml`.
-2. Locate `retention_period: 168h` (7 days). Update as needed.
-3. Run `docker compose restart loki`.
+### 4.2 Managing SLOs
+- **Availability Alert**: Fires if Success Rate < 99% (2m window).
+- **Latency Alert**: Fires if 90% of requests > 500ms (5m window).
+- **Watchdog (Dead Man's Switch)**: Must ALWAYS be in "Firing" state. If missing, the alerting system is down.
 
-### 4.3 Reliability Monitoring (SLOs)
-- **Availability**: Triggers if HTTP 5xx errors exceed 1% over 2 minutes.
-- **Latency**: Triggers if 90% of requests exceed 500ms.
-- **Check Status**: Visit `http://localhost:8080/prometheus/alerts` (Auth required).
+### 4.3 Log Retention & Cleanup
+- **Policy**: 7 Days (168h). Managed in `config/loki-config.yml`.
 
 ---
 
-## 5. Troubleshooting & Persistence
-
-- **"No Data"**: History resets if volumes are missing. We use `web_prometheus_data`, `web_grafana_data`, and `postgres_data` volumes for persistence. Always check if the time range is set to **"Last 15 minutes"**.
-- **Port Conflicts**: NGINX is on `8080` to avoid conflicts with local system servers on port `80`.
-- **Log-Trace Link**: If links don't appear in Grafana, ensure your Go code is using `slog.JSONHandler` and that the `trace_id` is present in the output.
+## 5. Persistence & Disaster Recovery
+- **Volumes**: Data resides in `web_prometheus_data`, `web_grafana_data`, and `postgres_data`.
+- **Dashboard Provisioning**: Dashboards are loaded from `./config/dashboards`. **Warning**: UI changes are ephemeral; update JSON files for permanent changes.
 
 ---
 
-*Document Status: Verified Production Version.*
+## 6. Quick Verification Checklist
+1. Visit **[Prometheus Targets](http://localhost:8080/prometheus/targets)**: Ensure all targets (node-exporter, blackbox, etc.) are **UP**.
+2. Visit **[Prometheus Alerts](http://localhost:8080/prometheus/alerts)**: Ensure **Watchdog** is firing.
+3. Visit **[Grafana Explore](http://localhost:8080/grafana/explore)**: Query Loki and click on a Trace ID to verify links.
+
+---
+
+*Compiled by Antigravity Observability Engine.*

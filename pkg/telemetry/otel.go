@@ -56,9 +56,8 @@ func InitTracer() (func(context.Context) error, error) {
 
 	bsp := sdktrace.NewBatchSpanProcessor(traceExporter)
 	
-	// Implementation of Trace Sampling (Nice to have)
-	// Currently set to ParentBased(AlwaysOn), can be tuned to TraceIdRatioBased for production.
-	sampler := sdktrace.ParentBased(sdktrace.AlwaysSample())
+	// Implementation of Trace Sampling (20% for production efficiency)
+	sampler := sdktrace.ParentBased(sdktrace.TraceIDRatioBased(0.2))
 
 	tracerProvider := sdktrace.NewTracerProvider(
 		sdktrace.WithSampler(sampler),

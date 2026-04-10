@@ -9,6 +9,7 @@ import (
 	"github.com/S4F4Y4T/goWebService/internal/model"
 	"github.com/S4F4Y4T/goWebService/internal/service"
 	"github.com/S4F4Y4T/goWebService/pkg/response"
+	"github.com/S4F4Y4T/goWebService/pkg/telemetry"
 	"github.com/go-playground/validator/v10"
 )
 
@@ -30,6 +31,12 @@ func NewUserHandler(srv *service.UserService) *UserHandler {
 }
 
 func (h *UserHandler) GetUsers(w http.ResponseWriter, r *http.Request) {
+	// Demonstrating Cross-service Trace Propagation (Impactful Task)
+	// This call will show up as a "child span" in Tempo
+	client := telemetry.NewHTTPClient()
+	req, _ := http.NewRequestWithContext(r.Context(), "GET", "https://jsonplaceholder.typicode.com/users", nil)
+	_, _ = client.Do(req)
+
 	users, err := h.srv.FindAll(r.Context(), &model.GetUsersRequest{Limit: 10, Offset: 0})
 
 	if err != nil {

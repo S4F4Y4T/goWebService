@@ -55,8 +55,18 @@ groups:
     labels:
       severity: critical
     annotations:
+      runbook_url: "https://wiki.internal/runbooks/service-health"
       summary: "Availability SLO Violated (Success Rate < 99%)"
       description: "Service success rate has dropped to {{ $value | printf \"%.2f\" }}% over the last 5 minutes."
+
+  - alert: Watchdog
+    expr: vector(1)
+    for: 1m
+    labels:
+      severity: none
+    annotations:
+      summary: "Monitoring Pipeline Heartbeat (Dead Man's Switch)"
+      description: "This alert is meant to ALWAYS fire. If it stops firing, the monitoring system (Prometheus/Alertmanager) is down."
 
   - alert: LatencySLOViolation
     expr: |
