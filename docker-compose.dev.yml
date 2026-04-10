@@ -162,6 +162,18 @@ services:
     depends_on:
       - postgres
 
+  gateway:
+    image: nginx:alpine
+    ports:
+      - "8080:80"
+    volumes:
+      - ./config/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./config/.htpasswd:/etc/nginx/.htpasswd:ro
+    depends_on:
+      - app
+      - grafana
+      - prometheus
+
 volumes:
   postgres_data:
   prometheus_data:
