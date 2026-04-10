@@ -6,6 +6,9 @@ import (
 	"log/slog"
 	"net/http"
 	"strconv"
+
+	"github.com/S4F4Y4T/goWebService/pkg/apperror"
+	"gorm.io/gorm"
 )
 
 type Response struct {
@@ -50,25 +53,47 @@ func Error(w http.ResponseWriter, err error) {
 		return
 	}
 
-	msg := err.Error()
-
-	// 404 Not Found mappings
-	if msg == "user not found" || msg == "product not found" || msg == "record not found" {
-		NotFound(w, msg)
+	var appErr *apperror.AppError
+	if errors.As(err, &appErr) {
+		switch appErr.Category {
+		case apperror.NotFound:
+			NotFound(w, appErr.Message)
+		case apperror.BadRequest:
+			BadRequest(w, appErr.Message)
+		case apperror.Conflict:
+			BadRequest(w, appErr.Message) // Or specific Conflict response
+		case apperror.Unauthorized:
+			Unauthorized(w)
+		default:
+			slog.Error("Uncaught app error", "category", appErr.Category, "error", appErr.Err)
+			internalError(w)
+		}
 		return
 	}
 
-	// 400 Bad Request mappings (JSON parsing issues, invalid IDs)
+	// Fallback for standard errors (e.g. JSON parsing, validation)
+	msg := err.Error()
+
+	// Handle GORM record not found
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		NotFound(w, "record not found")
+		return
+	}
+
 	var syntaxErr *json.SyntaxError
 	var unmarshalErr *json.UnmarshalTypeError
 	var numErr *strconv.NumError
 
-	if errors.As(err, &syntaxErr) || errors.As(err, &unmarshalErr) || errors.As(err, &numErr) || msg == "EOF" || msg == "unexpected EOF" {
+	if errors.As(err, &syntaxErr) || errors.As(err, &unmarshalErr) || errors.As(err, &numErr) || msg == "EOF" {
 		BadRequest(w, "invalid request data")
 		return
 	}
 
 	// 500 Internal Server Error (Mask raw DB queries and sensitive errors)
 	slog.Error("Internal Server Error", "error", err)
+	internalError(w)
+}
+
+func internalError(w http.ResponseWriter) {
 	JSON(w, http.StatusInternalServerError, Response{Success: false, Error: "internal server error"})
 }

@@ -45,12 +45,12 @@ func LoadConfig() (*Config, error) {
 	}
 
 	return &Config{
-		PORT:       port,
-		ENV:        env,
-		DBHost:     getEnv("DB_HOST", "localhost"),
-		DBUser:     getEnv("DB_USER", "postgres"),
-		DBPassword: getEnv("DB_PASSWORD", "postgres"),
-		DBName:     getEnv("DB_NAME", "go_web_service"),
+		PORT:           port,
+		ENV:            env,
+		DBHost:         getEnv("DB_HOST", "localhost"),
+		DBUser:         getEnv("DB_USER", "postgres"),
+		DBPassword:     getEnv("DB_PASSWORD", "postgres"),
+		DBName:         getEnv("DB_NAME", "go_web_service"),
 		DBPort:         getEnv("DB_PORT", "5432"),
 		DBMaxOpenConns: getEnvInt("DB_MAX_OPEN_CONNS", 100),
 		DBMaxIdleConns: getEnvInt("DB_MAX_IDLE_CONNS", 10),

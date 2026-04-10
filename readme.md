@@ -21,3 +21,5 @@
 - db config - max open connection(queue after db conn limit), idle connection (warm up instead everytime open new conn), max lifetime (close after long time cz network hat it)
 - validation (playground)
 - grafana, loki for logging
+- corelation id
+- error

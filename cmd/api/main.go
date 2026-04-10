@@ -15,6 +15,7 @@ import (
 	"github.com/S4F4Y4T/goWebService/internal/handler"
 	"github.com/S4F4Y4T/goWebService/internal/repository"
 	"github.com/S4F4Y4T/goWebService/internal/service"
+	"github.com/S4F4Y4T/goWebService/pkg/telemetry"
 	"github.com/S4F4Y4T/goWebService/router"
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
@@ -22,6 +23,17 @@ import (
 )
 
 func main() {
+	// Initialize Telemetry
+	shutdown, err := telemetry.InitTracer()
+	if err != nil {
+		slog.Error("Failed to initialize telemetry", "error", err)
+	}
+	defer func() {
+		if shutdown != nil {
+			shutdown(context.Background())
+		}
+	}()
+
 	os.MkdirAll("tmp", os.ModePerm)
 	logFile, err := os.OpenFile("tmp/app.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 	if err != nil {

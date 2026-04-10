@@ -6,6 +6,7 @@ import (
 	"github.com/S4F4Y4T/goWebService/internal/app"
 	"github.com/S4F4Y4T/goWebService/internal/handler"
 	"github.com/S4F4Y4T/goWebService/internal/middleware"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
 
 func SetupRoutes(app *app.App) http.Handler {
@@ -16,5 +17,6 @@ func SetupRoutes(app *app.App) http.Handler {
 	RegisterUserRoutes(mux, app.UserHandler)
 	RegisterProductRoutes(mux, app.ProductHandler)
 
-	return middleware.Apply(middleware.Recover, middleware.CorrelationID, middleware.Logger, middleware.Cors)(mux)
+	handler := middleware.Apply(middleware.Recover, middleware.CorrelationID, middleware.Logger, middleware.Cors)(mux)
+	return otelhttp.NewHandler(handler, "http-server")
 }
