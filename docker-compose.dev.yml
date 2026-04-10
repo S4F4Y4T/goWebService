@@ -73,13 +73,14 @@ services:
     image: grafana/grafana:latest
     ports:
       - "3003:3000"
-    volumes:
-      - ./config/grafana-datasource.yml:/etc/grafana/provisioning/datasources/datasource.yml:ro
-      - ./config/grafana-dashboards.yml:/etc/grafana/provisioning/dashboards/dashboards.yml:ro
-      - ./config/dashboards:/etc/grafana/provisioning/dashboards/json:ro
     environment:
       - GF_SECURITY_ADMIN_USER=admin
       - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./config/grafana-datasource.yml:/etc/grafana/provisioning/datasources/datasource.yml:ro
+      - ./config/grafana-dashboards.yml:/etc/grafana/provisioning/dashboards/dashboards.yml:ro
+      - ./config/dashboards:/etc/grafana/provisioning/dashboards/json:ro
     depends_on:
       - loki
       - tempo
@@ -107,6 +108,7 @@ services:
   prometheus:
     image: prom/prometheus:latest
     volumes:
+      - prometheus_data:/prometheus
       - ./config/prometheus.yml:/etc/prometheus/prometheus.yml:ro
       - ./config/alert.rules.yml:/etc/prometheus/alert.rules.yml:ro
     ports:
@@ -163,3 +165,5 @@ services:
 
 volumes:
   postgres_data:
+  prometheus_data:
+  grafana_data:
