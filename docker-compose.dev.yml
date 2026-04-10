@@ -89,6 +89,7 @@ services:
     command: [ "-config.file=/etc/tempo.yaml" ]
     volumes:
       - ./config/tempo.yml:/etc/tempo.yaml:ro
+      - tempo_data:/tmp/tempo
     ports:
       - "3200:3200"
       - "4317:4317"
@@ -178,3 +179,4 @@ volumes:
   postgres_data:
   prometheus_data:
   grafana_data:
+  tempo_data:
