@@ -1,16 +1,27 @@
+global:
+  resolve_timeout: 5m
+  # Replace 'YOUR_SLACK_WEBHOOK_URL' with your actual webhook URL
+  slack_api_url: 'YOUR_SLACK_WEBHOOK_URL'
+
 route:
-  group_by: ['alertname']
-  group_wait: 10s
-  group_interval: 10s
-  repeat_interval: 1h
-  receiver: 'web.hook'
+  group_by: ['alertname', 'severity']
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 4h
+  receiver: 'slack-notifications'
+
 receivers:
-  - name: 'web.hook'
-    webhook_configs:
-      - url: 'http://127.0.0.1:5001/' # placeholder webhook
+- name: 'slack-notifications'
+  slack_configs:
+  - channel: '#alerts' # Replace with your channel name
+    send_resolved: true
+    icon_emoji: ':robot_face:'
+    title: '{{ template "slack.default.title" . }}'
+    text: '{{ template "slack.default.text" . }}'
+
 inhibit_rules:
   - source_match:
       severity: 'critical'
     target_match:
       severity: 'warning'
-    equal: ['alertname', 'dev', 'instance']
+    equal: ['alertname', 'instance']

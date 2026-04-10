@@ -8,26 +8,32 @@ This document describes the comprehensive observability stack integrated into ou
 Our multi-layered observability approach utilizes the following components:
 
 ### 1. **Logs (PLG Stack)**
-*   **Promtail**: Acts as our localized log shipper. It tails the application log file (`tmp/app.log`) alongside docker container logs and pushes them upstream.
-*   **Loki**: A highly efficient log aggregation system designed to store and index logs natively optimized for Grafana visualization.
+*   **Docker Ingestion**: Promtail is configured to talk directly to the Docker socket (`/var/run/docker.sock`). It automatically discovers all running containers and scrapes their `stdout` logs.
+*   **Loki**: A highly efficient log aggregation system designed to store and index logs natively optimized for Grafana visualization. Logs are labeled by `service` and `container`.
+*   **Derived Fields**: Grafana is configured to automatically detect TraceIDs inside JSON logs and provide a one-click link to the corresponding Waterfall trace in Tempo.
 
 ### 2. **Traces (OpenTelemetry & Tempo)**
-*   **OpenTelemetry (OTel) SDK**: Integrated directly into the Go application router and configuration (`pkg/telemetry/otel.go`) to inherently auto-instrument HTTP and GORM database requests.
-*   **OTel Collector**: Receives trace and metric data sent from the application, processes it, and exports it to specialized backends.
-*   **Tempo**: A high-scale distributed tracing backend where structured trace spans are stored and queried.
+*   **OpenTelemetry (OTel) SDK**: Integrated directly into the Go application router (`pkg/telemetry/otel.go`) to auto-instrument HTTP and GORM database requests.
+*   **OTel Collector**: The central hub that receives OTLP data from the app (port 4318) and shovels it to the backends.
+*   **Tempo**: Stores and queries structured trace spans, allowing you to see exactly how much time each DB query or function call took during a single request.
 
 ### 3. **Metrics (Prometheus Ecosystem)**
-*   **Prometheus**: The core robust time-series database and monitoring engine. It recurrently scrapes designated targets to collect numerical data over time.
-*   **Node Exporter**: Deployed on the `host` network to gather deep system-level hardware and OS metrics (CPU load, Memory usage, Disk space, and Network utilization).
-*   **Blackbox Exporter**: Continuously probes the Go application (`http://host.docker.internal:6969/health`) via HTTP to verify uptime and response status simulating an external user request.
-*   **Application Metrics**: Pushed via the OpenTelemetry SDK through the OTel Collector, providing detailed native visibility into Go Garbage Collection, Goroutine counts, and heap usage.
+*   **Prometheus**: The core time-series database. It is configured with **Persistence**, so metrics are saved to disk in the `web_prometheus_data` volume.
+*   **Node Exporter**: Gathers system-level hardware metrics (CPU, RAM, Disk).
+*   **Blackbox Exporter**: Probes the application internally (`http://app:6969/health`) to verify status simulating uptime checks.
+*   **Application Metrics**: Global Runtime metrics (Memory, Goroutines, GC, DB Pool) are exported via OTel and scraped by Prometheus.
 
-### 4. **Alerting (Alertmanager)**
-*   **Alertmanager**: Bound to Prometheus to expertly handle, group, and route raised alerts based on severity.
-*   **Alerting Rules**: Pre-configured within `config/alert.rules.yml`. Evaluates conditions like `InstanceDown` or `EndpointDown` dynamically over 1-minute intervals.
+### 4. **Alerting (Slack Integration)**
+*   **Alert Rules**: Configured in `config/alert.rules.yml`. Active alerts include:
+    *   **High CPU/Memory/Disk**: Triggers when usage exceeds **70%** for more than 5 minutes.
+    *   **InstanceDown**: Triggers if a service container stops.
+    *   **EndpointDown**: Triggers if the `/health` check fails.
+*   **Slack Routing**: Alertmanager is pre-configured to send notifications to Slack. 
+    *   *Note: Requires a valid Slack Webhook URL in `config/alertmanager.yml`.*
 
-### 5. **Visualization (Grafana)**
-*   **Grafana**: The centralized 'single pane of glass' dashboard interface. It intrinsically correlates queries across Loki, Tempo, and Prometheus simultaneously.
+### 5. **Visualisation (Custom Grafana Dashboards)**
+*   **Go Web Service - Complete Metrics**: A custom-built dashboard that maps modern OTel metrics to the classic Go runtime views (Heap, Stack, GC, Objects).
+*   **Go Web Service - Health & Uptime**: A dedicated fail-proof dashboard for uptime, response latency, and HTTP status history.
 
 ## Service Ports & Interfaces
 
@@ -35,20 +41,17 @@ Our multi-layered observability approach utilizes the following components:
 | :--- | :--- | :--- |
 | **Grafana** | `3003` | Main Visualization Dashboard (Auth: `admin` / `admin`). |
 | **Prometheus** | `9090` | Direct Time-series query tool and active target health checks interface. |
-| **Alertmanager** | `9093` | Alert routing, silencing dashboard, and grouping configuration interface. |
-| **Tempo** | `3200` | Tracing endpoint (Backend storage ingestion). |
+| **Alertmanager** | `9093` | Alert routing and grouping configuration interface. |
+| **Tempo** | `3200` | Tracing backend storage. |
 | **Loki** | `3100` | Log parsing and indexing endpoint. |
-| **OTel Collector** | `4318` & `8889` | `4318`: HTTP OTLP receiver. `8889`: Prometheus designated scraping endpoint. |
-| **Blackbox Exporter**| `9115` | Internal prober metrics exporter interface. |
-| **Node Exporter** | `9100` | Raw Linux system metrics endpoint. |
+| **OTel Collector** | `4318` & `8889` | `4318`: OTLP HTTP receiver. `8889`: Prometheus scraping endpoint. |
+| **Blackbox Exporter**| `9115` | Internal endpoint prober. |
 
-## Quick Start & Verification
+## Persistence Note
+All observability data (Dashboards, Metrics, and Postgres Data) is now saved to **Docker Volumes**. You can safely run `docker compose down` and when you bring the stack back up, all your history and graph settings will be exactly where you left them.
 
-**Check System Health:**
-1. Open **[Prometheus Targets](http://localhost:9090/targets)** and verify that `node-exporter`, `otel-collector`, and `blackbox` are in the **`UP`** state.
-2. Open **[Prometheus Alerts](http://localhost:9090/alerts)** to observe currently defined monitoring rules.
+## Viewing Data in Grafana (http://localhost:3003)
 
-**Viewing Data in Grafana (http://localhost:3003):**
-*   **Logs (Loki)**: Navigate to `Explore`, select the **Loki** data source, and execute queries like `{job="varlogs"}`.
-*   **Traces (Tempo)**: Navigate to `Explore`, select the **Tempo** data source, and query by standard `TraceID`. (TraceIDs can be quickly derived from corresponding Loki logs utilizing the embedded `correlation_id`).
-*   **Metrics (Prometheus)**: Navigate to `Explore`, select the **Prometheus** data source, and construct queries for `go_gc_duration_seconds` for internal application runtime metrics or `node_cpu_seconds_total` to monitor active OS scaling loads.
+1.  **Check Health**: Go to the **Health & Uptime** dashboard to see the live status of the service.
+2.  **Debug Requests**: Go to `Explore` -> `Loki`, find an error log, and click the **TraceID** button to see the waterfall chart in Tempo.
+3.  **Monitor Performance**: Open **Complete Metrics** and set the time range to **"Last 15 minutes"** to see live memory and goroutine data.
