@@ -45,3 +45,25 @@ groups:
     annotations:
       summary: "High Disk Usage on {{ $labels.instance }}"
       description: "Disk usage on {{ $labels.mountpoint }} is above 70% (currently {{ $value | printf \"%.2f\" }}%)."
+
+  - alert: AvailabilitySLOViolation
+    expr: |
+      sum(rate(http_server_duration_count{exported_job="go-web-service", http_response_status_code!~"5.."}[5m])) 
+      / 
+      sum(rate(http_server_duration_count{exported_job="go-web-service"}[5m])) < 0.99
+    for: 2m
+    labels:
+      severity: critical
+    annotations:
+      summary: "Availability SLO Violated (Success Rate < 99%)"
+      description: "Service success rate has dropped to {{ $value | printf \"%.2f\" }}% over the last 5 minutes."
+
+  - alert: LatencySLOViolation
+    expr: |
+      histogram_quantile(0.9, sum by (le) (rate(http_server_duration_bucket{exported_job="go-web-service"}[5m]))) > 0.5
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: "Latency SLO Violated (p90 > 500ms)"
+      description: "90% of requests are taking longer than 500ms (currently {{ $value }}s)."

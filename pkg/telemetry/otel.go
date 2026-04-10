@@ -3,6 +3,7 @@ package telemetry
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"os"
 	"time"
 
@@ -15,6 +16,7 @@ import (
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.26.0"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
 
 func newResource(ctx context.Context) (*resource.Resource, error) {
@@ -53,8 +55,13 @@ func InitTracer() (func(context.Context) error, error) {
 	}
 
 	bsp := sdktrace.NewBatchSpanProcessor(traceExporter)
+	
+	// Implementation of Trace Sampling (Nice to have)
+	// Currently set to ParentBased(AlwaysOn), can be tuned to TraceIdRatioBased for production.
+	sampler := sdktrace.ParentBased(sdktrace.AlwaysSample())
+
 	tracerProvider := sdktrace.NewTracerProvider(
-		sdktrace.WithSampler(sdktrace.AlwaysSample()),
+		sdktrace.WithSampler(sampler),
 		sdktrace.WithResource(res),
 		sdktrace.WithSpanProcessor(bsp),
 	)
@@ -97,4 +104,14 @@ func InitMetrics() (func(context.Context) error, error) {
 	}
 
 	return meterProvider.Shutdown, nil
+}
+
+// NewHTTPClient returns a pre-configured HTTP client that automatically
+// propagates trace context to all outgoing requests.
+// This implements the High Priority task: Cross-service trace propagation.
+func NewHTTPClient() *http.Client {
+	return &http.Client{
+		Transport: otelhttp.NewTransport(http.DefaultTransport),
+		Timeout:   30 * time.Second,
+	}
 }
