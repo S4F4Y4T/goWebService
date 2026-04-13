@@ -2,15 +2,41 @@ package product
 
 import (
 	"context"
+	"errors"
+	"strings"
 	"time"
+)
+
+var (
+	ErrInvalidProductName = errors.New("product name must be between 2 and 255 characters")
 )
 
 // Product is the Aggregate Root for the Product domain
 type Product struct {
-	ID        uint      `json:"id" gorm:"primaryKey"`
+	ID        uint      `json:"id"`
 	Name      string    `json:"name"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
+}
+
+// NewProduct is a factory function for creating a valid Product entity
+func NewProduct(name string) (*Product, error) {
+	p := &Product{}
+	if err := p.UpdateName(name); err != nil {
+		return nil, err
+	}
+	return p, nil
+}
+
+// Domain Methods (Rich Domain Model)
+
+func (p *Product) UpdateName(name string) error {
+	name = strings.TrimSpace(name)
+	if len(name) < 2 || len(name) > 255 {
+		return ErrInvalidProductName
+	}
+	p.Name = name
+	return nil
 }
 
 // ProductRepository defines the persistence contract for Products

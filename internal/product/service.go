@@ -15,8 +15,9 @@ func NewService(repo ProductRepository) *Service {
 }
 
 func (s *Service) Create(ctx context.Context, req *CreateProductRequest) (*Product, error) {
-	p := &Product{
-		Name: req.Name,
+	p, err := NewProduct(req.Name)
+	if err != nil {
+		return nil, apperror.New(apperror.BadRequest, err.Error(), err)
 	}
 
 	if err := s.repo.Create(ctx, p); err != nil {
@@ -31,7 +32,10 @@ func (s *Service) Update(ctx context.Context, req *UpdateProductRequest) (*Produ
 		return nil, apperror.New(apperror.NotFound, "product not found", err)
 	}
 
-	p.Name = req.Name
+	if err := p.UpdateName(req.Name); err != nil {
+		return nil, apperror.New(apperror.BadRequest, err.Error(), err)
+	}
+
 	if err := s.repo.Update(ctx, p); err != nil {
 		return nil, apperror.New(apperror.Internal, "failed to update product", err)
 	}

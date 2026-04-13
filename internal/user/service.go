@@ -21,9 +21,18 @@ func (s *Service) Create(ctx context.Context, req *CreateUserRequest) (*User, er
 	ctx, span := tracer.Start(ctx, "user.service.create")
 	defer span.End()
 
-	u := &User{
-		Name:  req.Name,
-		Email: req.Email,
+	u, err := NewUser(req.Name, req.Email)
+	if err != nil {
+		return nil, apperror.New(apperror.BadRequest, err.Error(), err)
+	}
+
+	// Business Validation: Uniqueness
+	existing, err := s.repo.FindByEmail(ctx, string(u.Email))
+	if err != nil {
+		return nil, apperror.New(apperror.Internal, "failed to check email uniqueness", err)
+	}
+	if existing != nil {
+		return nil, apperror.New(apperror.BadRequest, "email already taken", nil)
 	}
 
 	if err := s.repo.Create(ctx, u); err != nil {
@@ -38,8 +47,13 @@ func (s *Service) Update(ctx context.Context, req *UpdateUserRequest) (*User, er
 		return nil, apperror.New(apperror.NotFound, "user not found", err)
 	}
 
-	u.Name = req.Name
-	u.Email = req.Email
+	if err := u.UpdateName(req.Name); err != nil {
+		return nil, apperror.New(apperror.BadRequest, err.Error(), err)
+	}
+
+	if err := u.UpdateEmail(req.Email); err != nil {
+		return nil, apperror.New(apperror.BadRequest, err.Error(), err)
+	}
 
 	if err := s.repo.Update(ctx, u); err != nil {
 		return nil, apperror.New(apperror.Internal, "failed to update user", err)

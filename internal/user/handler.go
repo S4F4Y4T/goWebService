@@ -1,7 +1,6 @@
 package user
 
 import (
-	"context"
 	"encoding/json"
 	"net/http"
 	"strconv"
@@ -18,13 +17,6 @@ type Handler struct {
 }
 
 func NewHandler(srv *Service) *Handler {
-	// Register custom validator for unique email
-	validate.RegisterValidation("unique_email", func(fl validator.FieldLevel) bool {
-		email := fl.Field().String()
-		u, _ := srv.FindByEmail(context.Background(), email)
-		return u == nil
-	})
-
 	return &Handler{srv: srv}
 }
 
