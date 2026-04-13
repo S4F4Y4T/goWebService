@@ -10,12 +10,10 @@ import (
 	"time"
 
 	"github.com/S4F4Y4T/goWebService/config"
-	"github.com/S4F4Y4T/goWebService/internal/app"
-	"github.com/S4F4Y4T/goWebService/internal/handler"
-	"github.com/S4F4Y4T/goWebService/internal/repository"
-	"github.com/S4F4Y4T/goWebService/internal/service"
+	"github.com/S4F4Y4T/goWebService/internal/product"
+	"github.com/S4F4Y4T/goWebService/internal/router"
+	"github.com/S4F4Y4T/goWebService/internal/user"
 	"github.com/S4F4Y4T/goWebService/pkg/telemetry"
-	"github.com/S4F4Y4T/goWebService/router"
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
@@ -72,20 +70,21 @@ func main() {
 		panic("impossible application state: database migration failed")
 	}
 
-	// ── Dependency Wiring ───────────────────────────────────────────────────
-	userRepo := repository.NewUserRepository(db)
-	userService := service.NewUserService(userRepo)
-	userHandler := handler.NewUserHandler(userService)
+	// ── Dependency Wiring (DDD Modules) ───────────────────────────────────
+	
+	// User Context
+	userRepo := user.NewUserRepository(db)
+	userService := user.NewService(userRepo)
+	userHandler := user.NewHandler(userService)
 
-	productRepo := repository.NewProductRepository(db)
-	productService := service.NewProductService(productRepo)
-	productHandler := handler.NewProductHandler(productService)
+	// Product Context
+	productRepo := product.NewProductRepository(db)
+	productService := product.NewService(productRepo)
+	productHandler := product.NewHandler(productService)
 
-	appInstance := &app.App{
-		UserHandler:    userHandler,
-		ProductHandler: productHandler,
-	}
-	mux := router.SetupRoutes(appInstance)
+	// Unified Router
+	r := router.NewRouter(userHandler, productHandler)
+	mux := r.Setup()
 
 	srv := &http.Server{
 		Addr:         ":" + cfg.PORT,

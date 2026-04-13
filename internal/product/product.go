@@ -1,10 +1,11 @@
-package model
+package product
 
 import (
 	"context"
 	"time"
 )
 
+// Product is the Aggregate Root for the Product domain
 type Product struct {
 	ID        uint      `json:"id" gorm:"primaryKey"`
 	Name      string    `json:"name"`
@@ -12,6 +13,16 @@ type Product struct {
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
+// ProductRepository defines the persistence contract for Products
+type ProductRepository interface {
+	Create(ctx context.Context, p *Product) error
+	Update(ctx context.Context, p *Product) error
+	Delete(ctx context.Context, id uint) error
+	FindByID(ctx context.Context, id uint) (*Product, error)
+	FindAll(ctx context.Context, limit, offset int) ([]Product, int64, error)
+}
+
+// API DTOs
 type CreateProductRequest struct {
 	Name string `json:"name" validate:"required,min=2,max=255"`
 }
@@ -21,30 +32,9 @@ type UpdateProductRequest struct {
 	Name string `json:"name" validate:"required,min=2,max=255"`
 }
 
-type DeleteProductRequest struct {
-	ID uint `json:"id"`
-}
-
-type GetProductRequest struct {
-	ID uint `json:"id"`
-}
-
-type GetProductsRequest struct {
-	Limit  int `json:"limit"`
-	Offset int `json:"offset"`
-}
-
 type GetProductsResponse struct {
 	Products []Product `json:"products"`
 	Total    int64     `json:"total"`
 	Limit    int       `json:"limit"`
 	Offset   int       `json:"offset"`
-}
-
-type ProductRepository interface {
-	Create(ctx context.Context, req *CreateProductRequest) (*Product, error)
-	Update(ctx context.Context, req *UpdateProductRequest) (*Product, error)
-	Delete(ctx context.Context, req *DeleteProductRequest) error
-	FindByID(ctx context.Context, req *GetProductRequest) (*Product, error)
-	FindAll(ctx context.Context, req *GetProductsRequest) (*GetProductsResponse, error)
 }

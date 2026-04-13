@@ -1,13 +1,12 @@
-package router
+package user
 
 import (
 	"net/http"
 
-	"github.com/S4F4Y4T/goWebService/internal/handler"
-	"github.com/S4F4Y4T/goWebService/internal/middleware"
+	"github.com/S4F4Y4T/goWebService/internal/shared/middleware"
 )
 
-func RegisterUserRoutes(mux *http.ServeMux, h *handler.UserHandler) {
+func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
 	userMux := http.NewServeMux()
 	userMux.Handle("GET /", middleware.With(h.GetUsers))
 	userMux.Handle("GET /{id}", middleware.With(h.GetUser))

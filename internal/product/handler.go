@@ -1,25 +1,26 @@
-package handler
+package product
 
 import (
 	"encoding/json"
 	"net/http"
 	"strconv"
 
-	"github.com/S4F4Y4T/goWebService/internal/model"
-	"github.com/S4F4Y4T/goWebService/internal/service"
 	"github.com/S4F4Y4T/goWebService/pkg/response"
+	"github.com/go-playground/validator/v10"
 )
 
-type ProductHandler struct {
-	srv *service.ProductService
+var validate = validator.New()
+
+type Handler struct {
+	srv *Service
 }
 
-func NewProductHandler(srv *service.ProductService) *ProductHandler {
-	return &ProductHandler{srv: srv}
+func NewHandler(srv *Service) *Handler {
+	return &Handler{srv: srv}
 }
 
-func (h *ProductHandler) GetProducts(w http.ResponseWriter, r *http.Request) {
-	products, err := h.srv.FindAll(r.Context())
+func (h *Handler) GetProducts(w http.ResponseWriter, r *http.Request) {
+	products, err := h.srv.FindAll(r.Context(), 10, 0)
 	if err != nil {
 		response.Error(w, err)
 		return
@@ -28,7 +29,7 @@ func (h *ProductHandler) GetProducts(w http.ResponseWriter, r *http.Request) {
 	response.OK(w, products)
 }
 
-func (h *ProductHandler) GetProduct(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) GetProduct(w http.ResponseWriter, r *http.Request) {
 	idStr := r.PathValue("id")
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
@@ -36,17 +37,17 @@ func (h *ProductHandler) GetProduct(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	product, err := h.srv.FindByID(r.Context(), &model.GetProductRequest{ID: uint(id)})
+	p, err := h.srv.FindByID(r.Context(), uint(id))
 	if err != nil {
 		response.Error(w, err)
 		return
 	}
 
-	response.OK(w, product)
+	response.OK(w, p)
 }
 
-func (h *ProductHandler) CreateProduct(w http.ResponseWriter, r *http.Request) {
-	var req model.CreateProductRequest
+func (h *Handler) CreateProduct(w http.ResponseWriter, r *http.Request) {
+	var req CreateProductRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		response.Error(w, err)
 		return
@@ -56,15 +57,15 @@ func (h *ProductHandler) CreateProduct(w http.ResponseWriter, r *http.Request) {
 		response.BadRequest(w, "Validation failed: "+err.Error())
 		return
 	}
-	product, err := h.srv.Create(r.Context(), &req)
+	p, err := h.srv.Create(r.Context(), &req)
 	if err != nil {
 		response.Error(w, err)
 		return
 	}
-	response.OK(w, product)
+	response.OK(w, p)
 }
 
-func (h *ProductHandler) UpdateProduct(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) UpdateProduct(w http.ResponseWriter, r *http.Request) {
 	idStr := r.PathValue("id")
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
@@ -72,7 +73,7 @@ func (h *ProductHandler) UpdateProduct(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var req model.UpdateProductRequest
+	var req UpdateProductRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		response.Error(w, err)
 		return
@@ -84,15 +85,15 @@ func (h *ProductHandler) UpdateProduct(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	product, err := h.srv.Update(r.Context(), &req)
+	p, err := h.srv.Update(r.Context(), &req)
 	if err != nil {
 		response.Error(w, err)
 		return
 	}
-	response.OK(w, product)
+	response.OK(w, p)
 }
 
-func (h *ProductHandler) DeleteProduct(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) DeleteProduct(w http.ResponseWriter, r *http.Request) {
 	idStr := r.PathValue("id")
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
@@ -100,7 +101,7 @@ func (h *ProductHandler) DeleteProduct(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.srv.Delete(r.Context(), &model.DeleteProductRequest{ID: uint(id)}); err != nil {
+	if err := h.srv.Delete(r.Context(), uint(id)); err != nil {
 		response.Error(w, err)
 		return
 	}

@@ -7,7 +7,7 @@ import (
 	"log/slog"
 	"time"
 
-	"github.com/S4F4Y4T/goWebService/internal/middleware"
+	"github.com/S4F4Y4T/goWebService/internal/shared/middleware"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 )
