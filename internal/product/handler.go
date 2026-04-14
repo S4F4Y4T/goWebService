@@ -1,6 +1,7 @@
 package product
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"strconv"
@@ -11,11 +12,21 @@ import (
 
 var validate = validator.New()
 
-type Handler struct {
-	srv *Service
+// ProductService defines the interface for product application logic.
+// Using an interface here allows handlers to be unit-tested with mocks.
+type ProductService interface {
+	Create(ctx context.Context, req *CreateProductRequest) (*Product, error)
+	Update(ctx context.Context, req *UpdateProductRequest) (*Product, error)
+	Delete(ctx context.Context, id uint) error
+	FindByID(ctx context.Context, id uint) (*Product, error)
+	FindAll(ctx context.Context, limit, offset int) (*GetProductsResponse, error)
 }
 
-func NewHandler(srv *Service) *Handler {
+type Handler struct {
+	srv ProductService
+}
+
+func NewHandler(srv ProductService) *Handler {
 	return &Handler{srv: srv}
 }
 
@@ -57,12 +68,14 @@ func (h *Handler) CreateProduct(w http.ResponseWriter, r *http.Request) {
 		response.BadRequest(w, "Validation failed: "+err.Error())
 		return
 	}
+
 	p, err := h.srv.Create(r.Context(), &req)
 	if err != nil {
 		response.Error(w, err)
 		return
 	}
-	response.OK(w, p)
+	// Fix: POST that creates a resource must return 201 Created
+	response.Created(w, p)
 }
 
 func (h *Handler) UpdateProduct(w http.ResponseWriter, r *http.Request) {

@@ -8,7 +8,6 @@ import (
 	"strconv"
 
 	"github.com/S4F4Y4T/goWebService/pkg/apperror"
-	"gorm.io/gorm"
 )
 
 type Response struct {
@@ -71,20 +70,12 @@ func Error(w http.ResponseWriter, err error) {
 		return
 	}
 
-	// Fallback for standard errors (e.g. JSON parsing, validation)
-	msg := err.Error()
-
-	// Handle GORM record not found
-	if errors.Is(err, gorm.ErrRecordNotFound) {
-		NotFound(w, "record not found")
-		return
-	}
-
+	// Fallback for standard errors (e.g. JSON parsing, strconv)
 	var syntaxErr *json.SyntaxError
 	var unmarshalErr *json.UnmarshalTypeError
 	var numErr *strconv.NumError
 
-	if errors.As(err, &syntaxErr) || errors.As(err, &unmarshalErr) || errors.As(err, &numErr) || msg == "EOF" {
+	if errors.As(err, &syntaxErr) || errors.As(err, &unmarshalErr) || errors.As(err, &numErr) || err.Error() == "EOF" {
 		BadRequest(w, "invalid request data")
 		return
 	}

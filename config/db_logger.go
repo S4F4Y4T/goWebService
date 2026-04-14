@@ -7,7 +7,7 @@ import (
 	"log/slog"
 	"time"
 
-	"github.com/S4F4Y4T/goWebService/internal/shared/middleware"
+	"github.com/S4F4Y4T/goWebService/pkg/correlation"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 )
@@ -41,7 +41,7 @@ func (l *slogLogger) Error(ctx context.Context, msg string, data ...interface{})
 func (l *slogLogger) Trace(ctx context.Context, begin time.Time, fc func() (string, int64), err error) {
 	elapsed := time.Since(begin)
 	sql, rows := fc()
-	correlationID := middleware.GetCorrelationID(ctx)
+	correlationID := correlation.GetCorrelationID(ctx)
 
 	fields := []any{
 		"correlation_id", correlationID,

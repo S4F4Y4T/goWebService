@@ -1,30 +1,36 @@
 package user
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"strconv"
 
 	"github.com/S4F4Y4T/goWebService/pkg/response"
-	"github.com/S4F4Y4T/goWebService/pkg/telemetry"
 	"github.com/go-playground/validator/v10"
 )
 
 var validate = validator.New()
 
-type Handler struct {
-	srv *Service
+// UserService defines the interface for user application logic.
+// Using an interface here allows handlers to be unit-tested with mocks.
+type UserService interface {
+	Create(ctx context.Context, req *CreateUserRequest) (*User, error)
+	Update(ctx context.Context, req *UpdateUserRequest) (*User, error)
+	Delete(ctx context.Context, id uint) error
+	FindByID(ctx context.Context, id uint) (*User, error)
+	FindAll(ctx context.Context, limit, offset int) (*GetUsersResponse, error)
 }
 
-func NewHandler(srv *Service) *Handler {
+type Handler struct {
+	srv UserService
+}
+
+func NewHandler(srv UserService) *Handler {
 	return &Handler{srv: srv}
 }
 
 func (h *Handler) GetUsers(w http.ResponseWriter, r *http.Request) {
-	client := telemetry.NewHTTPClient()
-	req, _ := http.NewRequestWithContext(r.Context(), "GET", "https://jsonplaceholder.typicode.com/users", nil)
-	_, _ = client.Do(req)
-
 	users, err := h.srv.FindAll(r.Context(), 10, 0)
 	if err != nil {
 		response.Error(w, err)
@@ -62,12 +68,14 @@ func (h *Handler) CreateUser(w http.ResponseWriter, r *http.Request) {
 		response.BadRequest(w, "Validation failed: "+err.Error())
 		return
 	}
+
 	u, err := h.srv.Create(r.Context(), &req)
 	if err != nil {
 		response.Error(w, err)
 		return
 	}
-	response.OK(w, u)
+	// Fix: POST that creates a resource must return 201 Created
+	response.Created(w, u)
 }
 
 func (h *Handler) UpdateUser(w http.ResponseWriter, r *http.Request) {

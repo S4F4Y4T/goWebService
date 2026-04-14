@@ -20,11 +20,6 @@ type Config struct {
 	DBMaxIdleConns int
 	DBMaxLifetime  int // in minutes
 
-	RedisHost     string
-	RedisPort     string
-	RedisPassword string
-	RedisDB       int
-
 	SlowQueryThreshold int // in milliseconds
 }
 
@@ -55,11 +50,6 @@ func LoadConfig() (*Config, error) {
 		DBMaxOpenConns: getEnvInt("DB_MAX_OPEN_CONNS", 100),
 		DBMaxIdleConns: getEnvInt("DB_MAX_IDLE_CONNS", 10),
 		DBMaxLifetime:  getEnvInt("DB_CONN_MAX_LIFETIME", 60),
-
-		RedisHost:     getEnv("REDIS_HOST", "localhost"),
-		RedisPort:     getEnv("REDIS_PORT", "6379"),
-		RedisPassword: getEnv("REDIS_PASSWORD", ""),
-		RedisDB:       getEnvInt("REDIS_DB", 0),
 
 		SlowQueryThreshold: getEnvInt("SLOW_QUERY_THRESHOLD", 200),
 	}, nil
