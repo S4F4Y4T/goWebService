@@ -5,6 +5,8 @@ import (
 	"errors"
 	"strings"
 	"time"
+
+	"github.com/S4F4Y4T/goWebService/internal/shared/domain"
 )
 
 var (
@@ -13,10 +15,11 @@ var (
 
 // Product is the Aggregate Root for the Product domain
 type Product struct {
-	ID        uint      `json:"id"`
-	Name      string    `json:"name"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	domain.AggregateRoot `json:"-"`
+	ID                   uint      `json:"id"`
+	Name                 string    `json:"name"`
+	CreatedAt            time.Time `json:"created_at"`
+	UpdatedAt            time.Time `json:"updated_at"`
 }
 
 // NewProduct is a factory function for creating a valid Product entity
@@ -46,21 +49,4 @@ type ProductRepository interface {
 	Delete(ctx context.Context, id uint) error
 	FindByID(ctx context.Context, id uint) (*Product, error)
 	FindAll(ctx context.Context, limit, offset int) ([]Product, int64, error)
-}
-
-// API DTOs
-type CreateProductRequest struct {
-	Name string `json:"name" validate:"required,min=2,max=255"`
-}
-
-type UpdateProductRequest struct {
-	ID   uint   `json:"id"`
-	Name string `json:"name" validate:"required,min=2,max=255"`
-}
-
-type GetProductsResponse struct {
-	Products []Product `json:"products"`
-	Total    int64     `json:"total"`
-	Limit    int       `json:"limit"`
-	Offset   int       `json:"offset"`
 }

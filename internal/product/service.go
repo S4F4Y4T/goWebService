@@ -28,6 +28,12 @@ func (s *Service) Create(ctx context.Context, req *CreateProductRequest) (*Produ
 	if err := s.repo.Create(ctx, p); err != nil {
 		return nil, apperror.New(apperror.Internal, "failed to create product", err)
 	}
+
+	// Record and Dispatch Event
+	p.RecordEvent(NewProductCreated(p.ID, p.Name))
+	s.dispatcher.Dispatch(ctx, p.GetEvents())
+	p.ClearEvents()
+
 	return p, nil
 }
 

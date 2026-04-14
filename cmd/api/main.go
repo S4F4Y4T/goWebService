@@ -78,11 +78,21 @@ func main() {
 
 	// Register Domain Event Handlers
 	dispatcher.Subscribe(user.UserCreatedTopic, func(ctx context.Context, ev domain.DomainEvent) error {
-		if event, ok := ev.(user.UserCreated); ok {
-			slog.Info("[EVENT] User Created", 
-				"userID", event.UserID, 
-				"email", event.Email,
-				"occurredAt", event.OccurredAt())
+		if e, ok := ev.(user.UserCreated); ok {
+			slog.Info("[EVENT] User Created",
+				"userID", e.UserID,
+				"email", e.Email,
+				"occurredAt", e.OccurredAt())
+		}
+		return nil
+	})
+
+	dispatcher.Subscribe(product.ProductCreatedTopic, func(ctx context.Context, ev domain.DomainEvent) error {
+		if e, ok := ev.(product.ProductCreated); ok {
+			slog.Info("[EVENT] Product Created",
+				"productID", e.ProductID,
+				"name", e.Name,
+				"occurredAt", e.OccurredAt())
 		}
 		return nil
 	})

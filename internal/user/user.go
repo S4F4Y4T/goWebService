@@ -20,8 +20,8 @@ type Email string
 
 func NewEmail(v string) (Email, error) {
 	v = strings.TrimSpace(strings.ToLower(v))
-	// Simple email regex for demonstration
-	re := regexp.MustCompile(`^[a-z0-0._%+-]+@[a-z0-0.-]+\.[a-z]{2,}$`)
+	// Fix: [a-z0-9] not [a-z0-0]
+	re := regexp.MustCompile(`^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$`)
 	if !re.MatchString(v) {
 		return "", ErrInvalidEmail
 	}
@@ -32,9 +32,11 @@ func (e Email) String() string {
 	return string(e)
 }
 
-// User is the Aggregate Root for the User domain
+// User is the Aggregate Root for the User domain.
+// AggregateRoot is embedded with json:"-" only — no gorm tags
+// because GORM never touches the User entity directly (userSchema handles that).
 type User struct {
-	domain.AggregateRoot `json:"-" gorm:"-"`
+	domain.AggregateRoot `json:"-"`
 	ID                   uint      `json:"id"`
 	Name                 string    `json:"name"`
 	Email                Email     `json:"email"`
@@ -82,23 +84,4 @@ type UserRepository interface {
 	FindByID(ctx context.Context, id uint) (*User, error)
 	FindAll(ctx context.Context, limit, offset int) ([]User, int64, error)
 	FindByEmail(ctx context.Context, email string) (*User, error)
-}
-
-// API DTOs
-type CreateUserRequest struct {
-	Name  string `json:"name" validate:"required,min=2,max=100"`
-	Email string `json:"email" validate:"required,email"`
-}
-
-type UpdateUserRequest struct {
-	ID    uint   `json:"id"`
-	Name  string `json:"name" validate:"required,min=2,max=100"`
-	Email string `json:"email" validate:"required,email"`
-}
-
-type GetUsersResponse struct {
-	Users  []User `json:"users"`
-	Total  int64  `json:"total"`
-	Limit  int    `json:"limit"`
-	Offset int    `json:"offset"`
 }

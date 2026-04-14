@@ -101,6 +101,4 @@ func (s *Service) FindAll(ctx context.Context, limit, offset int) (*GetUsersResp
 	}, nil
 }
 
-func (s *Service) FindByEmail(ctx context.Context, email string) (*User, error) {
-	return s.repo.FindByEmail(ctx, email)
-}
+
