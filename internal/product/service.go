@@ -3,15 +3,20 @@ package product
 import (
 	"context"
 
+	"github.com/S4F4Y4T/goWebService/internal/shared/event"
 	"github.com/S4F4Y4T/goWebService/pkg/apperror"
 )
 
 type Service struct {
-	repo ProductRepository
+	repo       ProductRepository
+	dispatcher *event.Dispatcher
 }
 
-func NewService(repo ProductRepository) *Service {
-	return &Service{repo: repo}
+func NewService(repo ProductRepository, dispatcher *event.Dispatcher) *Service {
+	return &Service{
+		repo:       repo,
+		dispatcher: dispatcher,
+	}
 }
 
 func (s *Service) Create(ctx context.Context, req *CreateProductRequest) (*Product, error) {

@@ -3,6 +3,7 @@ package user
 import (
 	"context"
 
+	"github.com/S4F4Y4T/goWebService/internal/shared/event"
 	"github.com/S4F4Y4T/goWebService/pkg/apperror"
 	"go.opentelemetry.io/otel"
 )
@@ -10,11 +11,15 @@ import (
 var tracer = otel.Tracer("user-service")
 
 type Service struct {
-	repo UserRepository
+	repo       UserRepository
+	dispatcher *event.Dispatcher
 }
 
-func NewService(repo UserRepository) *Service {
-	return &Service{repo: repo}
+func NewService(repo UserRepository, dispatcher *event.Dispatcher) *Service {
+	return &Service{
+		repo:       repo,
+		dispatcher: dispatcher,
+	}
 }
 
 func (s *Service) Create(ctx context.Context, req *CreateUserRequest) (*User, error) {
@@ -38,6 +43,12 @@ func (s *Service) Create(ctx context.Context, req *CreateUserRequest) (*User, er
 	if err := s.repo.Create(ctx, u); err != nil {
 		return nil, apperror.New(apperror.Internal, "failed to create user", err)
 	}
+
+	// Record and Dispatch Event
+	u.RecordEvent(NewUserCreated(u.ID, string(u.Email)))
+	s.dispatcher.Dispatch(ctx, u.GetEvents())
+	u.ClearEvents()
+
 	return u, nil
 }
 

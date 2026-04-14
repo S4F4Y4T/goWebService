@@ -6,6 +6,8 @@ import (
 	"regexp"
 	"strings"
 	"time"
+
+	"github.com/S4F4Y4T/goWebService/internal/shared/domain"
 )
 
 var (
@@ -32,11 +34,12 @@ func (e Email) String() string {
 
 // User is the Aggregate Root for the User domain
 type User struct {
-	ID        uint      `json:"id"`
-	Name      string    `json:"name"`
-	Email     Email     `json:"email"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	domain.AggregateRoot `json:"-" gorm:"-"`
+	ID                   uint      `json:"id"`
+	Name                 string    `json:"name"`
+	Email                Email     `json:"email"`
+	CreatedAt            time.Time `json:"created_at"`
+	UpdatedAt            time.Time `json:"updated_at"`
 }
 
 // NewUser is a factory function for creating a valid User entity

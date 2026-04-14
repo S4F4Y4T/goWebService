@@ -12,6 +12,8 @@ import (
 	"github.com/S4F4Y4T/goWebService/config"
 	"github.com/S4F4Y4T/goWebService/internal/product"
 	"github.com/S4F4Y4T/goWebService/internal/router"
+	"github.com/S4F4Y4T/goWebService/internal/shared/domain"
+	"github.com/S4F4Y4T/goWebService/internal/shared/event"
 	"github.com/S4F4Y4T/goWebService/internal/user"
 	"github.com/S4F4Y4T/goWebService/pkg/telemetry"
 	"github.com/golang-migrate/migrate/v4"
@@ -70,16 +72,31 @@ func main() {
 		panic("impossible application state: database migration failed")
 	}
 
+	// ── Infrastructure ───────────────────────────────────────────────────
+
+	dispatcher := event.NewDispatcher()
+
+	// Register Domain Event Handlers
+	dispatcher.Subscribe(user.UserCreatedTopic, func(ctx context.Context, ev domain.DomainEvent) error {
+		if event, ok := ev.(user.UserCreated); ok {
+			slog.Info("[EVENT] User Created", 
+				"userID", event.UserID, 
+				"email", event.Email,
+				"occurredAt", event.OccurredAt())
+		}
+		return nil
+	})
+
 	// ── Dependency Wiring (DDD Modules) ───────────────────────────────────
 	
 	// User Context
 	userRepo := user.NewUserRepository(db)
-	userService := user.NewService(userRepo)
+	userService := user.NewService(userRepo, dispatcher)
 	userHandler := user.NewHandler(userService)
 
 	// Product Context
 	productRepo := product.NewProductRepository(db)
-	productService := product.NewService(productRepo)
+	productService := product.NewService(productRepo, dispatcher)
 	productHandler := product.NewHandler(productService)
 
 	// Unified Router
